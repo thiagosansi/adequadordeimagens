@@ -58,22 +58,24 @@ export function InteractiveCropper({ imageUrl, format, onCropChange }: Props) {
   )
 
   return (
-    <div className="flex justify-center overflow-auto rounded-lg bg-gray-100 p-2">
-      <ReactCrop
-        crop={crop}
-        onChange={handleChange}
-        aspect={aspectRatio}
-        minWidth={50}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          ref={imgRef}
-          src={imageUrl}
-          alt="Imagem para recorte"
-          onLoad={onImageLoad}
-          className="max-h-72 max-w-full object-contain"
-        />
-      </ReactCrop>
+    <div className="max-h-72 overflow-auto rounded-lg bg-gray-100 p-2">
+      <div className="flex justify-center">
+        <ReactCrop
+          crop={crop}
+          onChange={handleChange}
+          aspect={aspectRatio}
+          minWidth={50}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            ref={imgRef}
+            src={imageUrl}
+            alt="Imagem para recorte"
+            onLoad={onImageLoad}
+            style={{ maxHeight: '260px', maxWidth: '100%', objectFit: 'contain' }}
+          />
+        </ReactCrop>
+      </div>
     </div>
   )
 }
