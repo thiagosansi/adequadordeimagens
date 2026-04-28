@@ -8,6 +8,7 @@ import { CarouselUploader } from './carousel-uploader'
 import { CarouselGlobalSettings } from './carousel-global-settings'
 import { CarouselCardItem } from './carousel-card-item'
 import { CarouselDownloadPanel } from './carousel-download-panel'
+import { CarouselPreviewGallery } from './carousel-preview-gallery'
 
 const MAX_CARDS = 10
 
@@ -183,6 +184,9 @@ export function CarouselSection() {
         globalBgConfig={globalBgConfig}
         onCardsProcessed={handleCardsProcessed}
       />
+
+      {/* Preview gallery (appears after processing) */}
+      <CarouselPreviewGallery cards={cards} format={format} />
     </div>
   )
 }
