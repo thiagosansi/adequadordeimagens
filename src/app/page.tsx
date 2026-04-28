@@ -13,6 +13,7 @@ import {
   renderAutoCrop,
   renderFitWithSolidBackground,
   renderFitWithBlurBackground,
+  renderExpandWithMirror,
   renderCrop,
   loadImage,
 } from '@/lib/canvas-renderer'
@@ -84,6 +85,9 @@ export default function HomePage() {
           height: img.naturalHeight,
         }
         result = renderCrop(img, crop, selectedFormat.width, selectedFormat.height)
+      } else if (adjustmentMode === 'expand') {
+        const img = await loadImage(originalUrl)
+        result = renderExpandWithMirror(img, selectedFormat.width, selectedFormat.height)
       } else if (adjustmentMode === 'fit-solid') {
         const img = await loadImage(originalUrl)
         result = renderFitWithSolidBackground(img, selectedFormat.width, selectedFormat.height, backgroundConfig.color)
