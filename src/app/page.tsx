@@ -23,6 +23,8 @@ import { AdjustmentPanel } from '@/components/adjustment-panel'
 import { RequirementsChecklist } from '@/components/requirements-checklist'
 import { PreviewPanel } from '@/components/preview-panel'
 import { DownloadPanel } from '@/components/download-panel'
+import { TextOverlayChecker } from '@/components/text-overlay-checker'
+import { BatchExportPanel } from '@/components/batch-export-panel'
 
 export default function HomePage() {
   const [originalFile, setOriginalFile] = useState<File | null>(null)
@@ -158,7 +160,12 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Step 2: Format selector */}
+        {/* Step 2: Text overlay checker (shown after upload) */}
+        {originalUrl && (
+          <TextOverlayChecker imageUrl={originalUrl} />
+        )}
+
+        {/* Step 3: Format selector */}
         {originalUrl && (
           <FormatSelector selected={selectedFormat} onSelect={handleFormatSelect} />
         )}
@@ -193,6 +200,13 @@ export default function HomePage() {
                     processedDataUrl={processedUrl}
                     format={selectedFormat}
                     originalFileName={originalFile?.name ?? 'imagem'}
+                  />
+                  <BatchExportPanel
+                    imageUrl={originalUrl}
+                    originalFileName={originalFile?.name ?? 'imagem'}
+                    mode={adjustmentMode}
+                    backgroundConfig={backgroundConfig}
+                    interactiveCrop={interactiveCrop}
                   />
                 </>
               ) : (
