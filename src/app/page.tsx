@@ -25,8 +25,12 @@ import { PreviewPanel } from '@/components/preview-panel'
 import { DownloadPanel } from '@/components/download-panel'
 import { TextOverlayChecker } from '@/components/text-overlay-checker'
 import { BatchExportPanel } from '@/components/batch-export-panel'
+import { AppModeSwitcher } from '@/components/app-mode-switcher'
+import type { AppMode } from '@/components/app-mode-switcher'
+import { CarouselSection } from '@/components/carousel/carousel-section'
 
 export default function HomePage() {
+  const [appMode, setAppMode] = useState<AppMode>('single')
   const [originalFile, setOriginalFile] = useState<File | null>(null)
   const [originalUrl, setOriginalUrl] = useState<string | null>(null)
   const [originalDimensions, setOriginalDimensions] = useState<{ width: number; height: number } | null>(null)
@@ -125,26 +129,32 @@ export default function HomePage() {
             <h1 className="text-xl font-bold text-gray-900">Adequador de Imagens</h1>
             <p className="text-xs text-gray-500">Meta Ads — Feed, Stories e Reels</p>
           </div>
-          {originalFile && (
-            <button
-              onClick={handleReset}
-              className="text-sm text-gray-500 underline hover:text-gray-700"
-            >
-              Nova imagem
-            </button>
-          )}
+          <div className="flex items-center gap-4">
+            <AppModeSwitcher mode={appMode} onChange={setAppMode} />
+            {appMode === 'single' && originalFile && (
+              <button
+                onClick={handleReset}
+                className="text-sm text-gray-500 underline hover:text-gray-700"
+              >
+                Nova imagem
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
-        {/* Step 1: Upload */}
-        {!originalUrl ? (
+        {/* Carousel mode */}
+        {appMode === 'carousel' && <CarouselSection />}
+
+        {/* Single image mode */}
+        {appMode === 'single' && !originalUrl ? (
           <ImageUploader onImageLoad={handleImageLoad} />
-        ) : (
+        ) : appMode === 'single' && (
           <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={originalUrl}
+              src={originalUrl!}
               alt="Thumbnail da imagem carregada"
               className="h-12 w-12 rounded-lg object-cover"
             />
@@ -161,17 +171,17 @@ export default function HomePage() {
         )}
 
         {/* Step 2: Text overlay checker (shown after upload) */}
-        {originalUrl && (
+        {appMode === 'single' && originalUrl && (
           <TextOverlayChecker imageUrl={originalUrl} />
         )}
 
         {/* Step 3: Format selector */}
-        {originalUrl && (
+        {appMode === 'single' && originalUrl && (
           <FormatSelector selected={selectedFormat} onSelect={handleFormatSelect} />
         )}
 
         {/* Steps 3+: Adjustment, requirements, preview, download */}
-        {selectedFormat && originalUrl && (
+        {appMode === 'single' && selectedFormat && originalUrl && (
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-6">
               <AdjustmentPanel
