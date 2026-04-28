@@ -10,29 +10,29 @@ type Props = {
 
 export function AppModeSwitcher({ mode, onChange }: Props) {
   return (
-    <div className="flex rounded-xl border border-gray-200 bg-white p-1">
+    <div className="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-0.5 gap-0.5">
       <button
         onClick={() => onChange('single')}
         className={cn(
-          'flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium transition-all',
+          'flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-all',
           mode === 'single'
-            ? 'bg-blue-600 text-white shadow-sm'
-            : 'text-gray-500 hover:text-gray-800',
+            ? 'bg-white text-gray-900 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700',
         )}
       >
-        <Image className="h-4 w-4" />
+        <Image className="h-3.5 w-3.5 shrink-0" />
         Imagem única
       </button>
       <button
         onClick={() => onChange('carousel')}
         className={cn(
-          'flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium transition-all',
+          'flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-all',
           mode === 'carousel'
-            ? 'bg-blue-600 text-white shadow-sm'
-            : 'text-gray-500 hover:text-gray-800',
+            ? 'bg-white text-gray-900 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700',
         )}
       >
-        <LayoutGrid className="h-4 w-4" />
+        <LayoutGrid className="h-3.5 w-3.5 shrink-0" />
         Carrossel
       </button>
     </div>
