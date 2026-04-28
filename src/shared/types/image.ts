@@ -9,7 +9,7 @@ export type MetaFormat = {
   safeZone?: { top: number; bottom: number }
 }
 
-export type AdjustmentMode = 'auto-crop' | 'interactive-crop' | 'fit-solid' | 'fit-blur'
+export type AdjustmentMode = 'auto-crop' | 'interactive-crop' | 'fit-solid' | 'fit-blur' | 'expand'
 
 export type BackgroundConfig = {
   type: 'solid' | 'blur'

@@ -20,6 +20,7 @@ type Props = {
 const MODES: { id: AdjustmentMode; label: string; description: string }[] = [
   { id: 'auto-crop', label: 'Corte automático', description: 'Centraliza e corta sem distorcer' },
   { id: 'interactive-crop', label: 'Corte manual', description: 'Você define a área de recorte' },
+  { id: 'expand', label: 'Expandir fundo', description: 'Expande o fundo sem cortar o sujeito' },
   { id: 'fit-solid', label: 'Cor de fundo', description: 'Imagem inteira + fundo colorido' },
   { id: 'fit-blur', label: 'Fundo desfocado', description: 'Imagem inteira + fundo borrado' },
 ]
@@ -43,7 +44,7 @@ export function AdjustmentPanel({
         Modo de ajuste
       </h2>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {MODES.map((m) => (
           <button
             key={m.id}
