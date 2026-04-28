@@ -68,20 +68,20 @@ export function TextOverlayChecker({ imageUrl }: Props) {
             Clique nas células que contêm texto. O Meta recomenda manter o texto abaixo de 20% da imagem (máx. 5 células).
           </p>
 
-          {/* Grid overlaid on the image */}
-          <div className="relative mb-3 overflow-hidden rounded-lg">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imageUrl}
-              alt="Imagem para verificação de texto"
-              className="w-full object-cover"
-              style={{ maxHeight: 240 }}
-            />
-            {/* 5x5 grid overlay */}
-            <div
-              className="absolute inset-0 grid"
-              style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`, gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)` }}
-            >
+          {/* Grid overlaid on the image — wrapper sizes to the displayed image, not the container */}
+          <div className="mb-3 flex justify-center rounded-lg bg-gray-100">
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageUrl}
+                alt="Imagem para verificação de texto"
+                className="block max-h-80 max-w-full"
+              />
+              {/* 5x5 grid overlay — inset-0 covers exactly the displayed image */}
+              <div
+                className="absolute inset-0 grid"
+                style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`, gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)` }}
+              >
               {Array.from({ length: TOTAL_CELLS }, (_, i) => (
                 <button
                   key={i}
@@ -95,6 +95,7 @@ export function TextOverlayChecker({ imageUrl }: Props) {
                   title={`Célula ${i + 1}`}
                 />
               ))}
+              </div>
             </div>
           </div>
 
