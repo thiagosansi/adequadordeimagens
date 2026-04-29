@@ -29,6 +29,7 @@ import { AppModeSwitcher } from '@/components/app-mode-switcher'
 import type { AppMode } from '@/components/app-mode-switcher'
 import { CarouselSection } from '@/components/carousel/carousel-section'
 import { processImageWithAI } from '@/lib/actions/cloudinary-ai'
+import type { AIMode } from '@/lib/actions/cloudinary-ai'
 
 export default function HomePage() {
   const [appMode, setAppMode] = useState<AppMode>('single')
@@ -44,6 +45,7 @@ export default function HomePage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isAIProcessing, setIsAIProcessing] = useState(false)
   const [aiError, setAIError] = useState<string | null>(null)
+  const [lastAIMode, setLastAIMode] = useState<AIMode | null>(null)
 
   const handleImageLoad = useCallback(
     (file: File, url: string) => {
@@ -107,6 +109,7 @@ export default function HomePage() {
       }
 
       setProcessedUrl(result)
+      setLastAIMode(null)
     } finally {
       setIsProcessing(false)
     }
@@ -126,6 +129,7 @@ export default function HomePage() {
       const aiMode = adjustmentMode === 'expand' ? 'generative-fill' : 'smart-crop'
       const result = await processImageWithAI(dataUrl, selectedFormat.width, selectedFormat.height, aiMode)
       setProcessedUrl(result)
+      setLastAIMode(aiMode)
     } catch (err) {
       setAIError(err instanceof Error ? err.message : 'Erro ao processar com IA')
     } finally {
@@ -246,6 +250,7 @@ export default function HomePage() {
                     mode={adjustmentMode}
                     backgroundConfig={backgroundConfig}
                     interactiveCrop={interactiveCrop}
+                    aiMode={lastAIMode ?? undefined}
                   />
                 </>
               ) : (

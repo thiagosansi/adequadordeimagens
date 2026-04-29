@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import JSZip from 'jszip'
-import { Download, Loader2, PackageOpen } from 'lucide-react'
+import { Download, Loader2, PackageOpen, Sparkles } from 'lucide-react'
 import { META_FORMATS } from '@/lib/meta-formats'
 import { renderAllFormats, buildExportFileName } from '@/lib/batch-export'
+import { processImageWithAI } from '@/lib/actions/cloudinary-ai'
+import type { AIMode } from '@/lib/actions/cloudinary-ai'
 import type { AdjustmentMode, BackgroundConfig, PixelCrop } from '@/shared/types/image'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +16,18 @@ type Props = {
   mode: AdjustmentMode
   backgroundConfig: BackgroundConfig
   interactiveCrop: PixelCrop | null
+  aiMode?: AIMode
+}
+
+async function blobUrlToDataUrl(url: string): Promise<string> {
+  const res = await fetch(url)
+  const blob = await res.blob()
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
 }
 
 export function BatchExportPanel({
@@ -22,10 +36,13 @@ export function BatchExportPanel({
   mode,
   backgroundConfig,
   interactiveCrop,
+  aiMode,
 }: Props) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isExporting, setIsExporting] = useState(false)
+  const [isAIExporting, setIsAIExporting] = useState(false)
   const [progress, setProgress] = useState<string | null>(null)
+  const [aiError, setAIError] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
 
   function toggleFormat(id: string) {
@@ -42,6 +59,40 @@ export function BatchExportPanel({
       setSelectedIds(new Set())
     } else {
       setSelectedIds(new Set(META_FORMATS.map((f) => f.id)))
+    }
+  }
+
+  async function handleAIBatchExport() {
+    if (selectedIds.size === 0 || !aiMode) return
+    setIsAIExporting(true)
+    setAIError(null)
+    try {
+      const formats = META_FORMATS.filter((f) => selectedIds.has(f.id))
+      const dataUrl = await blobUrlToDataUrl(imageUrl)
+      const zip = new JSZip()
+
+      for (let i = 0; i < formats.length; i++) {
+        const format = formats[i]!
+        setProgress('IA: ' + format.label + ' (' + (i + 1) + '/' + formats.length + ')...')
+        const result = await processImageWithAI(dataUrl, format.width, format.height, aiMode)
+        const base64 = result.split(',')[1]!
+        zip.file(buildExportFileName(originalFileName, format), base64, { base64: true })
+      }
+
+      setProgress('Criando arquivo .zip...')
+      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
+      const baseName = originalFileName.replace(/\.[^.]+$/, '')
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = baseName + '_meta-ads-ai.zip'
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setAIError(err instanceof Error ? err.message : 'Erro ao exportar com IA')
+    } finally {
+      setIsAIExporting(false)
+      setProgress(null)
     }
   }
 
@@ -150,28 +201,61 @@ export function BatchExportPanel({
             ))}
           </div>
 
-          <button
-            onClick={handleBatchExport}
-            disabled={isExporting || count === 0}
-            className={cn(
-              'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors',
-              isExporting || count === 0
-                ? 'cursor-not-allowed bg-gray-200 text-gray-500'
-                : 'bg-blue-600 text-white hover:bg-blue-700',
+          <div className="space-y-2">
+            {aiMode && (
+              <button
+                onClick={handleAIBatchExport}
+                disabled={isAIExporting || isExporting || count === 0}
+                className={cn(
+                  'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors',
+                  isAIExporting || isExporting || count === 0
+                    ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+                    : 'bg-violet-600 text-white hover:bg-violet-700',
+                )}
+              >
+                {isAIExporting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {progress ?? 'Exportando com IA...'}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    {count > 0 ? 'Exportar ' + count + ' formato' + (count > 1 ? 's' : '') + ' com IA' : 'Exportar com IA'}
+                  </>
+                )}
+              </button>
             )}
-          >
-            {isExporting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {progress ?? 'Exportando...'}
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                {buttonLabel}
-              </>
+
+            <button
+              onClick={handleBatchExport}
+              disabled={isExporting || isAIExporting || count === 0}
+              className={cn(
+                'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors',
+                isExporting || isAIExporting || count === 0
+                  ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+                  : aiMode
+                  ? 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                  : 'bg-blue-600 text-white hover:bg-blue-700',
+              )}
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {progress ?? 'Exportando...'}
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  {aiMode ? 'Exportar sem IA' : buttonLabel}
+                </>
+              )}
+            </button>
+
+            {aiError && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{aiError}</p>
             )}
-          </button>
+          </div>
         </div>
       )}
     </div>
