@@ -28,6 +28,7 @@ import { BatchExportPanel } from '@/components/batch-export-panel'
 import { AppModeSwitcher } from '@/components/app-mode-switcher'
 import type { AppMode } from '@/components/app-mode-switcher'
 import { CarouselSection } from '@/components/carousel/carousel-section'
+import { processImageWithAI } from '@/lib/actions/cloudinary-ai'
 
 export default function HomePage() {
   const [appMode, setAppMode] = useState<AppMode>('single')
@@ -41,6 +42,8 @@ export default function HomePage() {
   const [processedUrl, setProcessedUrl] = useState<string | null>(null)
   const [requirements, setRequirements] = useState<Requirement[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isAIProcessing, setIsAIProcessing] = useState(false)
+  const [aiError, setAIError] = useState<string | null>(null)
 
   const handleImageLoad = useCallback(
     (file: File, url: string) => {
@@ -108,6 +111,27 @@ export default function HomePage() {
       setIsProcessing(false)
     }
   }, [originalUrl, selectedFormat, adjustmentMode, interactiveCrop, backgroundConfig])
+
+  const handleAIApply = useCallback(async () => {
+    if (!originalFile || !selectedFormat) return
+    setIsAIProcessing(true)
+    setAIError(null)
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(originalFile)
+      })
+      const aiMode = adjustmentMode === 'expand' ? 'generative-fill' : 'smart-crop'
+      const result = await processImageWithAI(dataUrl, selectedFormat.width, selectedFormat.height, aiMode)
+      setProcessedUrl(result)
+    } catch (err) {
+      setAIError(err instanceof Error ? err.message : 'Erro ao processar com IA')
+    } finally {
+      setIsAIProcessing(false)
+    }
+  }, [originalFile, selectedFormat, adjustmentMode])
 
   const handleReset = useCallback(() => {
     if (originalUrl) URL.revokeObjectURL(originalUrl)
@@ -194,7 +218,12 @@ export default function HomePage() {
                 onInteractiveCropChange={setInteractiveCrop}
                 onApply={handleApply}
                 isProcessing={isProcessing}
+                onAIApply={handleAIApply}
+                isAIProcessing={isAIProcessing}
               />
+              {aiError && (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{aiError}</p>
+              )}
               <RequirementsChecklist requirements={requirements} />
             </div>
 

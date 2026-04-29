@@ -3,7 +3,7 @@
 import type { AdjustmentMode, MetaFormat, BackgroundConfig, PixelCrop } from '@/shared/types/image'
 import { InteractiveCropper } from './interactive-cropper'
 import { cn } from '@/lib/utils'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Sparkles } from 'lucide-react'
 
 type Props = {
   imageUrl: string
@@ -15,6 +15,13 @@ type Props = {
   onInteractiveCropChange: (crop: PixelCrop) => void
   onApply: () => void
   isProcessing: boolean
+  onAIApply?: () => Promise<void>
+  isAIProcessing?: boolean
+}
+
+const AI_LABELS: Partial<Record<AdjustmentMode, string>> = {
+  'auto-crop': 'Recorte inteligente',
+  'expand': 'Expandir com IA',
 }
 
 const MODES: { id: AdjustmentMode; label: string; description: string }[] = [
@@ -37,7 +44,11 @@ export function AdjustmentPanel({
   onInteractiveCropChange,
   onApply,
   isProcessing,
+  onAIApply,
+  isAIProcessing = false,
 }: Props) {
+  const aiLabel = AI_LABELS[mode]
+  const anyProcessing = isProcessing || isAIProcessing
   return (
     <div className="space-y-4">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -106,25 +117,52 @@ export function AdjustmentPanel({
         </div>
       )}
 
-      <button
-        onClick={onApply}
-        disabled={isProcessing}
-        className={cn(
-          'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors',
-          isProcessing
-            ? 'cursor-not-allowed bg-gray-200 text-gray-500'
-            : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+      <div className="space-y-2">
+        <button
+          onClick={onApply}
+          disabled={anyProcessing}
+          className={cn(
+            'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors',
+            anyProcessing
+              ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+              : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+          )}
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Processando...
+            </>
+          ) : (
+            'Aplicar ajuste'
+          )}
+        </button>
+
+        {aiLabel && onAIApply && (
+          <button
+            onClick={onAIApply}
+            disabled={anyProcessing}
+            className={cn(
+              'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors',
+              anyProcessing
+                ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+                : 'bg-violet-600 text-white hover:bg-violet-700 active:bg-violet-800',
+            )}
+          >
+            {isAIProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Processando com IA...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                {aiLabel}
+              </>
+            )}
+          </button>
         )}
-      >
-        {isProcessing ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Processando...
-          </>
-        ) : (
-          'Aplicar ajuste'
-        )}
-      </button>
+      </div>
     </div>
   )
 }
