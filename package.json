@@ -1,5 +1,5 @@
 {
-  "name": "adequadordeimagens",
+  "name": "adframe",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,32 +13,36 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
+    "browser-image-compression": "^2.0.2",
+    "class-variance-authority": "^0.7.1",
+    "cloudinary": "^2.10.0",
+    "clsx": "^2.1.1",
+    "face-api.js": "^0.22.2",
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.511.0",
     "next": "^15.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-image-crop": "^11.0.7",
-    "browser-image-compression": "^2.0.2",
-    "jszip": "^3.10.1",
-    "lucide-react": "^0.511.0",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.4.1",
+    "@vitest/coverage-v8": "^3.1.2",
     "eslint": "^9",
     "eslint-config-next": "^15.3.1",
     "jsdom": "^26.1.0",
-    "typescript": "^5",
     "tailwindcss": "^4",
-    "@tailwindcss/postcss": "^4",
-    "vitest": "^3.1.2",
-    "@vitest/coverage-v8": "^3.1.2",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
-    "@testing-library/jest-dom": "^6.6.3"
+    "typescript": "^5",
+    "vitest": "^3.1.2"
   }
 }

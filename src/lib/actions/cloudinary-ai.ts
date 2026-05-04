@@ -36,6 +36,35 @@ function pickCredentials(): Credentials {
 
 export type AIMode = 'smart-crop' | 'generative-fill'
 
+/**
+ * Fetches a Cloudinary transformation URL with exponential backoff.
+ * AI transformations (gen_fill, smart-crop) are processed asynchronously —
+ * the first request may return a non-200 status while Cloudinary queues the job.
+ */
+async function fetchWithRetry(
+  url: string,
+  maxAttempts = 8,
+  initialDelayMs = 1500,
+): Promise<ArrayBuffer> {
+  let delay = initialDelayMs
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const response = await fetch(url)
+    if (response.ok) {
+      return response.arrayBuffer()
+    }
+    // 423 = transformation queued/processing; retry on that and 5xx
+    const retryable = response.status === 423 || response.status >= 500
+    if (!retryable || attempt === maxAttempts) {
+      throw new Error(
+        `Cloudinary: ${response.status} ${response.statusText} (tentativa ${attempt}/${maxAttempts})`,
+      )
+    }
+    await new Promise((r) => setTimeout(r, delay))
+    delay = Math.min(delay * 1.5, 8000) // cap at 8 s
+  }
+  throw new Error('Cloudinary: tempo limite excedido aguardando processamento da IA')
+}
+
 export async function processImageWithAI(
   dataUrl: string,
   width: number,
@@ -56,7 +85,7 @@ export async function processImageWithAI(
   })
 
   const uploaded = await cloudinary.uploader.upload(dataUrl, {
-    folder: 'adequador-temp',
+    folder: 'adframe-temp',
     resource_type: 'image',
   })
 
@@ -82,12 +111,7 @@ export async function processImageWithAI(
             secure: true,
           })
 
-    const response = await fetch(transformUrl)
-    if (!response.ok) {
-      throw new Error('Cloudinary: ' + response.status + ' ' + response.statusText)
-    }
-
-    const buffer = await response.arrayBuffer()
+    const buffer = await fetchWithRetry(transformUrl)
     const base64 = Buffer.from(buffer).toString('base64')
     return 'data:image/jpeg;base64,' + base64
   } finally {

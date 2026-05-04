@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Adequador de Imagens — Meta Ads',
+  title: 'AdFrame — Meta Ads',
   description: 'Ajuste suas imagens para todos os formatos do Meta Ads sem distorção.',
 }
 
