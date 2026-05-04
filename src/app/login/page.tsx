@@ -1,14 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { login, signUp, resetPassword } from '@/lib/auth'
 
 type View = 'login' | 'signup' | 'forgot'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [view, setView] = useState<View>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,7 +23,7 @@ export default function LoginPage() {
     try {
       if (view === 'login') {
         await login(email, password)
-        router.replace('/app')
+        window.location.href = '/app'
       } else if (view === 'signup') {
         await signUp(email, password)
         setMessage('Conta criada! Verifique seu e-mail para confirmar.')
