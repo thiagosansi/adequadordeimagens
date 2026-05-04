@@ -20,12 +20,9 @@ export default function ProjectsPage() {
   async function handleDownload(project: Project) {
     try {
       const url = await getExportUrl(project.storage_path)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = project.name
-      link.click()
+      window.open(url, '_blank')
     } catch {
-      alert('Não foi possível baixar a imagem.')
+      alert('Não foi possível abrir a imagem.')
     }
   }
 
