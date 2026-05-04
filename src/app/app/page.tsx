@@ -326,26 +326,6 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
 
             {/* Col 2 — Preview + Download + Batch */}
             <div className="space-y-4">
-              {/* Apply button: mobile only, shown above preview */}
-              <button
-                onClick={handleApply}
-                disabled={isProcessing || isAIProcessing || !adjustmentMode}
-                className={cn(
-                  'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors md:hidden',
-                  isProcessing || isAIProcessing || !adjustmentMode
-                    ? 'cursor-not-allowed bg-gray-200 text-gray-500'
-                    : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
-                )}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  'Aplicar ajuste'
-                )}
-              </button>
               {processedUrl ? (
                 <>
                   <PreviewPanel
@@ -353,6 +333,26 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
                     processedUrl={processedUrl}
                     format={selectedFormat}
                   />
+                  {/* Apply button: mobile only, after preview */}
+                  <button
+                    onClick={handleApply}
+                    disabled={isProcessing || isAIProcessing || !adjustmentMode}
+                    className={cn(
+                      'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors md:hidden',
+                      isProcessing || isAIProcessing || !adjustmentMode
+                        ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+                        : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+                    )}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      'Aplicar ajuste'
+                    )}
+                  </button>
                   <DownloadPanel
                     processedDataUrl={processedUrl}
                     format={selectedFormat}
@@ -370,15 +370,37 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
                   />
                 </>
               ) : (
-                <div className="flex h-32 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 text-center sm:h-48">
-                  <p className="text-sm text-gray-400">
-                    {!adjustmentMode
-                      ? 'Selecione um modo de ajuste para gerar o preview.'
-                      : isProcessing
-                      ? 'Gerando preview...'
-                      : 'Aguardando parâmetros...'}
-                  </p>
-                </div>
+                <>
+                  <div className="flex h-32 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 text-center sm:h-48">
+                    <p className="text-sm text-gray-400">
+                      {!adjustmentMode
+                        ? 'Selecione um modo de ajuste para gerar o preview.'
+                        : isProcessing
+                        ? 'Gerando preview...'
+                        : 'Aguardando parâmetros...'}
+                    </p>
+                  </div>
+                  {/* Apply button: mobile only, below empty state */}
+                  <button
+                    onClick={handleApply}
+                    disabled={isProcessing || isAIProcessing || !adjustmentMode}
+                    className={cn(
+                      'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors md:hidden',
+                      isProcessing || isAIProcessing || !adjustmentMode
+                        ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+                        : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+                    )}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      'Aplicar ajuste'
+                    )}
+                  </button>
+                </>
               )}
             </div>
 
