@@ -286,7 +286,8 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
 
         {appMode === 'single' && selectedFormat && originalUrl && (
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="order-2 space-y-6 md:order-1">
+            {/* Col 1 — Adjustment controls (always order-1 on mobile, left on desktop) */}
+            <div className="space-y-6">
               <AdjustmentPanel
                 imageUrl={originalUrl}
                 format={selectedFormat}
@@ -306,19 +307,23 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
               {aiError && (
                 <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{aiError}</p>
               )}
-              <QualityScoreCard
-                requirements={requirements}
-                textCoveragePercent={textCoveragePercent}
-                imageAnalysis={imageAnalysis}
-              />
-              <RequirementsChecklist
-                requirements={requirements}
-                onSuggestInteractiveCrop={() => setAdjustmentMode('interactive-crop')}
-              />
-              <FormatBenchmarkCard format={selectedFormat} />
+              {/* Quality cards: visible inline on desktop, moved below preview on mobile */}
+              <div className="hidden space-y-6 md:block">
+                <QualityScoreCard
+                  requirements={requirements}
+                  textCoveragePercent={textCoveragePercent}
+                  imageAnalysis={imageAnalysis}
+                />
+                <RequirementsChecklist
+                  requirements={requirements}
+                  onSuggestInteractiveCrop={() => setAdjustmentMode('interactive-crop')}
+                />
+                <FormatBenchmarkCard format={selectedFormat} />
+              </div>
             </div>
 
-            <div className="order-1 space-y-4 md:order-2">
+            {/* Col 2 — Preview + Download + Batch */}
+            <div className="space-y-4">
               {processedUrl ? (
                 <>
                   <PreviewPanel
@@ -353,6 +358,20 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
                   </p>
                 </div>
               )}
+            </div>
+
+            {/* Quality cards: mobile only, shown below preview */}
+            <div className="space-y-6 md:hidden">
+              <QualityScoreCard
+                requirements={requirements}
+                textCoveragePercent={textCoveragePercent}
+                imageAnalysis={imageAnalysis}
+              />
+              <RequirementsChecklist
+                requirements={requirements}
+                onSuggestInteractiveCrop={() => setAdjustmentMode('interactive-crop')}
+              />
+              <FormatBenchmarkCard format={selectedFormat} />
             </div>
           </div>
         )}
