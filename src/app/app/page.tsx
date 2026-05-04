@@ -198,8 +198,8 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
     setAdjustmentMode(null)
   }, [originalUrl])
 
-  function handleLogout() {
-    logout()
+  async function handleLogout() {
+    await logout()
     router.replace('/')
   }
 
