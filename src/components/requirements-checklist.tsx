@@ -4,9 +4,11 @@ import { cn } from '@/lib/utils'
 
 type Props = {
   requirements: Requirement[]
+  platformLabel?: string
+  onSuggestInteractiveCrop?: () => void
 }
 
-export function RequirementsChecklist({ requirements }: Props) {
+export function RequirementsChecklist({ requirements, platformLabel, onSuggestInteractiveCrop }: Props) {
   if (requirements.length === 0) return null
 
   const hasFail = requirements.some((r) => r.status === 'fail')
@@ -16,7 +18,7 @@ export function RequirementsChecklist({ requirements }: Props) {
     <div>
       <div className="mb-3 flex items-center gap-2">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-          Requisitos Meta Ads
+          Requisitos {platformLabel ?? 'da Plataforma'}
         </h2>
         <span
           className={cn(
@@ -29,14 +31,24 @@ export function RequirementsChecklist({ requirements }: Props) {
       </div>
       <div className="space-y-2">
         {requirements.map((req) => (
-          <RequirementRow key={req.id} requirement={req} />
+          <RequirementRow
+            key={req.id}
+            requirement={req}
+            onSuggestInteractiveCrop={req.id === 'safe-zone' && req.status === 'warning' ? onSuggestInteractiveCrop : undefined}
+          />
         ))}
       </div>
     </div>
   )
 }
 
-function RequirementRow({ requirement }: { requirement: Requirement }) {
+function RequirementRow({
+  requirement,
+  onSuggestInteractiveCrop,
+}: {
+  requirement: Requirement
+  onSuggestInteractiveCrop?: () => void
+}) {
   const config = {
     pass: {
       icon: <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-500" />,
@@ -55,9 +67,17 @@ function RequirementRow({ requirement }: { requirement: Requirement }) {
   return (
     <div className={cn('flex items-start gap-3 rounded-lg border p-3', config.bg)}>
       {config.icon}
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-xs font-semibold text-gray-700">{requirement.label}</p>
         <p className="text-xs text-gray-600">{requirement.message}</p>
+        {onSuggestInteractiveCrop && (
+          <button
+            onClick={onSuggestInteractiveCrop}
+            className="mt-1.5 text-xs font-medium text-amber-700 underline underline-offset-2 hover:text-amber-900"
+          >
+            Usar recorte interativo para ajustar →
+          </button>
+        )}
       </div>
     </div>
   )

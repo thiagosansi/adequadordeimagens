@@ -41,6 +41,7 @@ import { processImageWithAI } from '@/lib/actions/cloudinary-ai'
 import type { AIMode } from '@/lib/actions/cloudinary-ai'
 import { analyseImage } from '@/lib/image-analyser'
 import type { ImageAnalysis } from '@/lib/image-analyser'
+import { getPlatformRules } from '@/lib/platform-rules'
 
 export default function AppPage() {
   const router = useRouter()
@@ -318,6 +319,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
                 />
                 <RequirementsChecklist
                   requirements={requirements}
+                  platformLabel={getPlatformRules(selectedFormat.platform).label}
                   onSuggestInteractiveCrop={() => setAdjustmentMode('interactive-crop')}
                 />
                 <FormatBenchmarkCard format={selectedFormat} />
@@ -413,6 +415,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
               />
               <RequirementsChecklist
                 requirements={requirements}
+                platformLabel={getPlatformRules(selectedFormat.platform).label}
                 onSuggestInteractiveCrop={() => setAdjustmentMode('interactive-crop')}
               />
               <FormatBenchmarkCard format={selectedFormat} />
