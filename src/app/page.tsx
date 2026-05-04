@@ -193,7 +193,7 @@ export default function LandingPage() {
       {/* Header */}
       <header className="border-b border-gray-100">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2">
+          <Link href="/app" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
               <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" stroke="currentColor" strokeWidth={2}>
                 <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -201,7 +201,7 @@ export default function LandingPage() {
               </svg>
             </div>
             <span className="font-semibold text-gray-900">AdFrame</span>
-          </div>
+          </Link>
           <Link
             href="/login"
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
