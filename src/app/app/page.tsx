@@ -286,7 +286,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
 
         {appMode === 'single' && selectedFormat && originalUrl && (
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-6">
+            <div className="order-2 space-y-6 md:order-1">
               <AdjustmentPanel
                 imageUrl={originalUrl}
                 format={selectedFormat}
@@ -318,7 +318,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
               <FormatBenchmarkCard format={selectedFormat} />
             </div>
 
-            <div className="space-y-4">
+            <div className="order-1 space-y-4 md:order-2">
               {processedUrl ? (
                 <>
                   <PreviewPanel
