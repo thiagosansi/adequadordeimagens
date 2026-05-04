@@ -78,7 +78,7 @@ export function DownloadPanel({ processedDataUrl, format, originalFileName, requ
         hasFail ? 'border-amber-200 bg-amber-50' : 'border-green-200 bg-green-50',
       )}
     >
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-gray-800">
             {hasFail ? 'Imagem com requisitos não atendidos' : 'Pronto para download'}
@@ -91,7 +91,7 @@ export function DownloadPanel({ processedDataUrl, format, originalFileName, requ
           onClick={handleDownload}
           disabled={isCompressing}
           className={cn(
-            'flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:bg-gray-300',
+            'flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 sm:w-auto sm:py-2',
             hasFail ? 'bg-amber-500 hover:bg-amber-600' : 'bg-green-600 hover:bg-green-700',
           )}
         >

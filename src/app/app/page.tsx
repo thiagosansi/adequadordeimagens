@@ -206,40 +206,47 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <Link href="/app" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" stroke="currentColor" strokeWidth={2}>
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <path d="M3 9h18M9 21V9" />
-              </svg>
-            </div>
-            <span className="font-semibold text-gray-900">AdFrame</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <AppModeSwitcher mode={appMode} onChange={setAppMode} />
-            {appMode === 'single' && originalFile && (
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-              >
-                Nova imagem
-              </button>
-            )}
-            <Link href="/app/projects" className="text-sm text-gray-500 hover:text-gray-800">
-              Meus projetos
+        <div className="mx-auto max-w-5xl px-4">
+          {/* Row 1: logo + right actions */}
+          <div className="flex items-center justify-between py-3">
+            <Link href="/app" className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" stroke="currentColor" strokeWidth={2}>
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18M9 21V9" />
+                </svg>
+              </div>
+              <span className="font-semibold text-gray-900">AdFrame</span>
             </Link>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-gray-400 hover:text-gray-600"
-            >
-              Sair
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Mode switcher inline only on sm+ */}
+              <div className="hidden sm:block">
+                <AppModeSwitcher mode={appMode} onChange={setAppMode} />
+              </div>
+              {appMode === 'single' && originalFile && (
+                <button
+                  onClick={handleReset}
+                  className="hidden items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:flex"
+                >
+                  Nova imagem
+                </button>
+              )}
+              <Link href="/app/projects" className="hidden text-sm text-gray-500 hover:text-gray-800 sm:block">
+                Meus projetos
+              </Link>
+              <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-gray-600">
+                Sair
+              </button>
+            </div>
+          </div>
+          {/* Row 2: mode switcher full-width on mobile only */}
+          <div className="pb-3 sm:hidden">
+            <AppModeSwitcher mode={appMode} onChange={setAppMode} />
           </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+      <div className="mx-auto max-w-5xl space-y-5 px-3 py-5 sm:px-4 sm:py-8">
         {appMode === 'carousel' && <CarouselSection />}
         {appMode === 'video' && <VideoSection />}
         {appMode === 'batch' && <BatchSection />}
@@ -278,7 +285,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
         )}
 
         {appMode === 'single' && selectedFormat && originalUrl && (
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-6">
               <AdjustmentPanel
                 imageUrl={originalUrl}
@@ -336,7 +343,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
                   />
                 </>
               ) : (
-                <div className="flex h-48 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 text-center">
+                <div className="flex h-32 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 text-center sm:h-48">
                   <p className="text-sm text-gray-400">
                     {!adjustmentMode
                       ? 'Selecione um modo de ajuste para gerar o preview.'

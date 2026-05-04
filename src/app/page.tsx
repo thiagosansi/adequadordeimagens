@@ -213,14 +213,14 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="border-b border-gray-100 bg-gradient-to-b from-blue-50 to-white">
-        <div className="mx-auto max-w-3xl px-4 py-24 text-center">
+        <div className="mx-auto max-w-3xl px-4 py-12 text-center sm:py-24">
           <span className="mb-4 inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
             Meta · TikTok · Google Ads · LinkedIn · YouTube
           </span>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          <h1 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
             Seus criativos prontos<br />para qualquer plataforma
           </h1>
-          <p className="mb-8 text-lg text-gray-500">
+          <p className="mb-8 text-base text-gray-500 sm:text-lg">
             Redimensione imagens e vídeos, valide requisitos técnicos, analise qualidade e receba alertas de performance — sem enviar nada para nenhum servidor.
           </p>
           <Link
@@ -236,9 +236,9 @@ export default function LandingPage() {
       </section>
 
       {/* Platforms */}
-      <section className="border-b border-gray-100 py-16">
+      <section className="border-b border-gray-100 py-10 sm:py-16">
         <div className="mx-auto max-w-5xl px-4">
-          <h2 className="mb-8 text-center text-sm font-semibold uppercase tracking-widest text-gray-400">
+          <h2 className="mb-6 text-center text-sm font-semibold uppercase tracking-widest text-gray-400 sm:mb-8">
             Plataformas suportadas
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -263,14 +263,14 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="border-b border-gray-100 py-16">
+      <section className="border-b border-gray-100 py-10 sm:py-16">
         <div className="mx-auto max-w-5xl px-4">
-          <h2 className="mb-10 text-center text-sm font-semibold uppercase tracking-widest text-gray-400">
+          <h2 className="mb-6 text-center text-sm font-semibold uppercase tracking-widest text-gray-400 sm:mb-10">
             Funcionalidades
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {FEATURES.map((f) => (
-              <div key={f.title} className="rounded-xl border border-gray-200 p-6">
+              <div key={f.title} className="rounded-xl border border-gray-200 p-4 sm:p-6">
                 <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${f.color}`}>
                   {f.icon}
                 </div>
@@ -283,13 +283,13 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section className="border-b border-gray-100 py-16">
+      <section className="border-b border-gray-100 py-10 sm:py-16">
         <div className="mx-auto max-w-3xl px-4">
-          <h2 className="mb-10 text-center text-sm font-semibold uppercase tracking-widest text-gray-400">
+          <h2 className="mb-6 text-center text-sm font-semibold uppercase tracking-widest text-gray-400 sm:mb-10">
             Como funciona
           </h2>
           <div className="space-y-6">
-            {STEPS.map((s, i) => (
+            {STEPS.map((s) => (
               <div key={s.step} className="flex items-start gap-4">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
                   {s.step}
@@ -298,9 +298,6 @@ export default function LandingPage() {
                   <p className="text-sm font-semibold text-gray-900">{s.title}</p>
                   <p className="text-sm text-gray-500">{s.description}</p>
                 </div>
-                {i < STEPS.length - 1 && (
-                  <div className="absolute left-[2.75rem] mt-8 h-6 w-px bg-gray-200" />
-                )}
               </div>
             ))}
           </div>
@@ -308,7 +305,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA bottom */}
-      <section className="bg-gray-50 py-20 text-center">
+      <section className="bg-gray-50 py-12 text-center sm:py-20">
         <h2 className="mb-3 text-2xl font-bold text-gray-900">Pronto para começar?</h2>
         <p className="mb-8 text-gray-500">
           Acesse a ferramenta e ajuste seu primeiro criativo agora — é gratuito.

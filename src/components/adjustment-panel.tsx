@@ -8,7 +8,7 @@ import { Loader2, Sparkles } from 'lucide-react'
 type Props = {
   imageUrl: string
   format: MetaFormat
-  mode: AdjustmentMode
+  mode: AdjustmentMode | null
   backgroundConfig: BackgroundConfig
   onModeChange: (mode: AdjustmentMode) => void
   onBackgroundChange: (config: BackgroundConfig) => void
@@ -26,6 +26,7 @@ const AI_LABELS: Partial<Record<AdjustmentMode, string>> = {
 
 const MODES: { id: AdjustmentMode; label: string; description: string }[] = [
   { id: 'auto-crop', label: 'Corte automático', description: 'Centraliza e corta sem distorcer' },
+  { id: 'face-crop', label: 'Foco no rosto', description: 'Detecta e centraliza no rosto' },
   { id: 'interactive-crop', label: 'Corte manual', description: 'Você define a área de recorte' },
   { id: 'expand', label: 'Expandir fundo', description: 'Expande o fundo sem cortar o sujeito' },
   { id: 'fit-solid', label: 'Cor de fundo', description: 'Imagem inteira + fundo colorido' },
@@ -47,7 +48,7 @@ export function AdjustmentPanel({
   onAIApply,
   isAIProcessing = false,
 }: Props) {
-  const aiLabel = AI_LABELS[mode]
+  const aiLabel = mode ? AI_LABELS[mode] : undefined
   const anyProcessing = isProcessing || isAIProcessing
   return (
     <div className="space-y-4">
@@ -61,7 +62,7 @@ export function AdjustmentPanel({
             key={m.id}
             onClick={() => onModeChange(m.id)}
             className={cn(
-              'rounded-lg border-2 p-3 text-left transition-all',
+              'rounded-lg border-2 p-3 text-left transition-all active:scale-95',
               mode === m.id
                 ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-200 bg-white hover:border-gray-300',
@@ -85,7 +86,7 @@ export function AdjustmentPanel({
                 onClick={() => onBackgroundChange({ type: 'solid', color })}
                 title={color}
                 className={cn(
-                  'h-8 w-8 rounded-full border-2 transition-transform hover:scale-110',
+                  'h-10 w-10 rounded-full border-2 transition-transform hover:scale-110 sm:h-8 sm:w-8',
                   backgroundConfig.color === color
                     ? 'border-blue-500 scale-110'
                     : 'border-gray-300',
@@ -97,7 +98,7 @@ export function AdjustmentPanel({
               type="color"
               value={backgroundConfig.color}
               onChange={(e) => onBackgroundChange({ type: 'solid', color: e.target.value })}
-              className="h-8 w-8 cursor-pointer rounded border border-gray-300"
+              className="h-10 w-10 cursor-pointer rounded border border-gray-300 sm:h-8 sm:w-8"
               title="Cor personalizada"
             />
           </div>
@@ -118,12 +119,17 @@ export function AdjustmentPanel({
       )}
 
       <div className="space-y-2">
+        {!mode && (
+          <p className="text-center text-xs text-gray-400">
+            Selecione um modo de ajuste acima para continuar.
+          </p>
+        )}
         <button
           onClick={onApply}
-          disabled={anyProcessing}
+          disabled={anyProcessing || !mode}
           className={cn(
             'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors',
-            anyProcessing
+            anyProcessing || !mode
               ? 'cursor-not-allowed bg-gray-200 text-gray-500'
               : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
           )}

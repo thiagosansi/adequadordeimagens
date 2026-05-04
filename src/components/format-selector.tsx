@@ -1,8 +1,14 @@
 'use client'
 
-import { META_FORMATS } from '@/lib/meta-formats'
+import { useState } from 'react'
+import type { Platform } from '@/shared/types/platform'
 import type { MetaFormat } from '@/shared/types/image'
+import { getImageFormats } from '@/lib/format-registry'
+import { PlatformSelector } from './platform-selector'
 import { cn } from '@/lib/utils'
+
+// Platforms that have image formats
+const IMAGE_PLATFORMS: Platform[] = ['meta', 'tiktok', 'google', 'linkedin']
 
 type Props = {
   selected: MetaFormat | null
@@ -10,13 +16,28 @@ type Props = {
 }
 
 export function FormatSelector({ selected, onSelect }: Props) {
+  const [platform, setPlatform] = useState<Platform>('meta')
+
+  const formats = getImageFormats(platform)
+
+  function handlePlatformChange(next: Platform) {
+    setPlatform(next)
+    // Clear selection when switching platforms to avoid cross-platform confusion
+    if (selected?.platform !== next) onSelect(null as unknown as MetaFormat)
+  }
+
   return (
     <div>
+      <PlatformSelector
+        selected={platform}
+        onChange={handlePlatformChange}
+        available={IMAGE_PLATFORMS}
+      />
       <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
         Escolha o formato
       </h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {META_FORMATS.map((format) => (
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+        {formats.map((format) => (
           <FormatCard
             key={format.id}
             format={format}
@@ -39,7 +60,6 @@ function FormatCard({
   onSelect: (format: MetaFormat) => void
 }) {
   const aspectRatio = format.width / format.height
-  // Scale preview rectangle to fit in a 48x60 bounding box
   const MAX_W = 44
   const MAX_H = 56
   const previewW = aspectRatio >= 1 ? MAX_W : Math.round(MAX_H * aspectRatio)
@@ -50,7 +70,7 @@ function FormatCard({
       onClick={() => onSelect(format)}
       aria-pressed={isSelected}
       className={cn(
-        'flex flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-all',
+        'flex flex-col items-center gap-2 rounded-xl border-2 p-2 text-center transition-all active:scale-95 sm:p-3',
         isSelected
           ? 'border-blue-500 bg-blue-50 shadow-sm'
           : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm',
