@@ -124,11 +124,12 @@ export function AdjustmentPanel({
             Selecione um modo de ajuste acima para continuar.
           </p>
         )}
+        {/* Apply button: hidden on mobile (rendered below preview in page), visible on md+ */}
         <button
           onClick={onApply}
           disabled={anyProcessing || !mode}
           className={cn(
-            'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors',
+            'hidden w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors md:flex',
             anyProcessing || !mode
               ? 'cursor-not-allowed bg-gray-200 text-gray-500'
               : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',

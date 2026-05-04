@@ -1,5 +1,6 @@
 import type { PixelCrop } from '@/shared/types/image'
-import { calculateAutoCrop, calculateFitDimensions, calculateCoverDimensions } from './crop-calculator'
+import { calculateAutoCrop, calculateFaceAwareCrop, calculateFitDimensions, calculateCoverDimensions } from './crop-calculator'
+import { detectFaces, getFocalPoint } from './face-detector'
 
 function createCanvas(width: number, height: number): HTMLCanvasElement {
   const canvas = document.createElement('canvas')
@@ -69,8 +70,39 @@ export function renderFitWithSolidBackground(
 }
 
 /**
+ * Draws a blurred version of img onto ctx using the scale-down/up technique.
+ * Works on all browsers including iOS Safari < 18 where ctx.filter is unsupported.
+ * drawX/Y/W/H are the cover-mode drawing coordinates on the target canvas.
+ */
+function drawBlurredCover(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  drawX: number,
+  drawY: number,
+  drawW: number,
+  drawH: number,
+  canvasW: number,
+  canvasH: number,
+  brightness = 0.65,
+): void {
+  const SCALE = 14
+  const bw = Math.max(1, Math.round(canvasW / SCALE))
+  const bh = Math.max(1, Math.round(canvasH / SCALE))
+  const tiny = createCanvas(bw, bh)
+  const tCtx = tiny.getContext('2d')!
+  const sx = bw / canvasW
+  const sy = bh / canvasH
+  tCtx.drawImage(img, drawX * sx, drawY * sy, drawW * sx, drawH * sy)
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(tiny, 0, 0, canvasW, canvasH)
+  ctx.fillStyle = `rgba(0,0,0,${1 - brightness})`
+  ctx.fillRect(0, 0, canvasW, canvasH)
+}
+
+/**
  * Renders the image with a blurred version of itself as background.
- * Background: image scaled to cover + blur filter.
+ * Background: image scaled to cover + blur (cross-browser, no ctx.filter).
  * Foreground: image scaled to fit (sharp, centered).
  * Never distorts.
  */
@@ -84,11 +116,8 @@ export function renderFitWithBlurBackground(
   const canvas = createCanvas(targetWidth, targetHeight)
   const ctx = canvas.getContext('2d')!
 
-  // Background: cover mode + blur
   const cover = calculateCoverDimensions(img.naturalWidth, img.naturalHeight, targetWidth, targetHeight)
-  ctx.filter = 'blur(20px) brightness(0.65)'
-  ctx.drawImage(img, cover.offsetX, cover.offsetY, cover.drawWidth, cover.drawHeight)
-  ctx.filter = 'none'
+  drawBlurredCover(ctx, img, cover.offsetX, cover.offsetY, cover.drawWidth, cover.drawHeight, targetWidth, targetHeight, 0.65)
 
   // Foreground: fit mode, sharp and centered
   const fit = calculateFitDimensions(img.naturalWidth, img.naturalHeight, targetWidth, targetHeight)
@@ -123,11 +152,9 @@ export function renderExpandWithMirror(
   const rightX = offsetX + drawWidth
   const bottomY = offsetY + drawHeight
 
-  // ── Step 1: blurred cover as base ────────────────────────────────────────
+  // ── Step 1: blurred cover as base (cross-browser, no ctx.filter) ─────────
   const cover = calculateCoverDimensions(img.naturalWidth, img.naturalHeight, targetWidth, targetHeight)
-  ctx.filter = 'blur(24px) brightness(0.75)'
-  ctx.drawImage(img, cover.offsetX, cover.offsetY, cover.drawWidth, cover.drawHeight)
-  ctx.filter = 'none'
+  drawBlurredCover(ctx, img, cover.offsetX, cover.offsetY, cover.drawWidth, cover.drawHeight, targetWidth, targetHeight, 0.75)
 
   // ── Step 2: mirror fills ──────────────────────────────────────────────────
   // Vertical expansion (portrait canvas, landscape image)
@@ -233,9 +260,87 @@ export async function renderAutoCrop(
 }
 
 /**
+ * Like renderAutoCrop but centres the crop on the detected face(s) focal point.
+ * Falls back to center crop when no faces are detected.
+ */
+export async function renderFaceAwareCrop(
+  imageUrl: string,
+  targetWidth: number,
+  targetHeight: number,
+  outputFormat: 'image/jpeg' | 'image/png' = 'image/jpeg',
+  quality = 0.92,
+): Promise<{ dataUrl: string; faceCount: number; error?: string }> {
+  const img = await loadImage(imageUrl)
+  const { faces, error } = await detectFaces(img)
+  const focal = getFocalPoint(faces)
+  const crop = calculateFaceAwareCrop(img.naturalWidth, img.naturalHeight, targetWidth, targetHeight, focal)
+  const dataUrl = renderCrop(img, crop, targetWidth, targetHeight, outputFormat, quality)
+  return { dataUrl, faceCount: faces.length, error }
+}
+
+/**
  * Estimates file size in KB from a data URL (approximate).
  */
 export function estimateDataUrlSizeKB(dataUrl: string): number {
   const base64 = dataUrl.split(',')[1] ?? ''
   return Math.round((base64.length * 3) / 4 / 1024)
+}
+
+/**
+ * Analyses whether significant content exists inside the safe zone regions.
+ * Samples pixel variance in each band (top/bottom/left/right) and returns a 0–1 score per band.
+ * Score > threshold means meaningful content detected in that zone.
+ *
+ * Works on the original image before any crop/resize.
+ */
+export function analyseSafeZoneContent(
+  img: HTMLImageElement,
+  safeZone: { top?: number; bottom?: number; left?: number; right?: number },
+): { topScore: number; bottomScore: number; leftScore: number; rightScore: number } {
+  const { naturalWidth: w, naturalHeight: h } = img
+
+  const canvas = createCanvas(w, h)
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(img, 0, 0, w, h)
+
+  function horizontalBandVariance(y0: number, y1: number): number {
+    const bandH = y1 - y0
+    if (bandH <= 0) return 0
+    const data = ctx.getImageData(0, y0, w, bandH).data
+    return computeVariance(data)
+  }
+
+  function verticalBandVariance(x0: number, x1: number): number {
+    const bandW = x1 - x0
+    if (bandW <= 0) return 0
+    const data = ctx.getImageData(x0, 0, bandW, h).data
+    return computeVariance(data)
+  }
+
+  function computeVariance(data: Uint8ClampedArray): number {
+    let sum = 0
+    let sumSq = 0
+    const samples = data.length / 4
+    for (let i = 0; i < data.length; i += 4) {
+      const lum = 0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!
+      sum += lum
+      sumSq += lum * lum
+    }
+    const mean = sum / samples
+    const variance = sumSq / samples - mean * mean
+    // normalise to 0–1 (max possible variance for 0–255 range ≈ 16256)
+    return Math.min(variance / 16256, 1)
+  }
+
+  const topH = Math.round(h * ((safeZone.top ?? 0) / 100))
+  const bottomStart = h - Math.round(h * ((safeZone.bottom ?? 0) / 100))
+  const leftW = Math.round(w * ((safeZone.left ?? 0) / 100))
+  const rightStart = w - Math.round(w * ((safeZone.right ?? 0) / 100))
+
+  return {
+    topScore: safeZone.top ? horizontalBandVariance(0, topH) : 0,
+    bottomScore: safeZone.bottom ? horizontalBandVariance(bottomStart, h) : 0,
+    leftScore: safeZone.left ? verticalBandVariance(0, leftW) : 0,
+    rightScore: safeZone.right ? verticalBandVariance(rightStart, w) : 0,
+  }
 }

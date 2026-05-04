@@ -3,6 +3,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type {
   MetaFormat,
   AdjustmentMode,
@@ -324,6 +326,26 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
 
             {/* Col 2 — Preview + Download + Batch */}
             <div className="space-y-4">
+              {/* Apply button: mobile only, shown above preview */}
+              <button
+                onClick={handleApply}
+                disabled={isProcessing || isAIProcessing || !adjustmentMode}
+                className={cn(
+                  'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors md:hidden',
+                  isProcessing || isAIProcessing || !adjustmentMode
+                    ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+                )}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  'Aplicar ajuste'
+                )}
+              </button>
               {processedUrl ? (
                 <>
                   <PreviewPanel
