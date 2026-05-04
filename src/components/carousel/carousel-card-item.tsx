@@ -23,9 +23,10 @@ type Props = {
 
 const MODES: { id: AdjustmentMode; label: string }[] = [
   { id: 'auto-crop', label: 'Auto-crop' },
+  { id: 'face-crop', label: 'Foco no rosto' },
   { id: 'expand', label: 'Expandir' },
   { id: 'fit-solid', label: 'Cor sólida' },
-  { id: 'fit-blur', label: 'Blur' },
+  { id: 'fit-blur', label: 'Fundo desfocado' },
   { id: 'interactive-crop', label: 'Manual' },
 ]
 
