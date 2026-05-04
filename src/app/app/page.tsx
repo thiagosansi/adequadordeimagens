@@ -226,6 +226,9 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
                 Nova imagem
               </button>
             )}
+            <Link href="/app/projects" className="text-sm text-gray-500 hover:text-gray-800">
+              Meus projetos
+            </Link>
             <button
               onClick={handleLogout}
               className="text-sm text-gray-400 hover:text-gray-600"
