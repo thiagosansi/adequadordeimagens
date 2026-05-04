@@ -70,9 +70,24 @@ export function renderFitWithSolidBackground(
 }
 
 /**
- * Draws a blurred version of img onto ctx using the scale-down/up technique.
- * Works on all browsers including iOS Safari < 18 where ctx.filter is unsupported.
- * drawX/Y/W/H are the cover-mode drawing coordinates on the target canvas.
+ * Detects whether ctx.filter is actually applied by the browser.
+ * iOS Safari < 18 accepts the assignment but silently ignores it.
+ */
+function ctxFilterSupported(): boolean {
+  try {
+    const c = createCanvas(2, 2)
+    const t = c.getContext('2d')!
+    t.filter = 'blur(1px)'
+    return t.filter !== '' && t.filter !== 'none'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Draws a blurred background using:
+ *  - ctx.filter when supported (Chrome, Firefox, Safari 18+) — sharp gaussian blur
+ *  - multi-pass scale-down/up fallback for iOS Safari < 18 — smooth soft blur
  */
 function drawBlurredCover(
   ctx: CanvasRenderingContext2D,
@@ -83,21 +98,55 @@ function drawBlurredCover(
   drawH: number,
   canvasW: number,
   canvasH: number,
-  brightness = 0.65,
+  blurPx: number,
+  brightness: number,
 ): void {
-  const SCALE = 14
-  const bw = Math.max(1, Math.round(canvasW / SCALE))
-  const bh = Math.max(1, Math.round(canvasH / SCALE))
-  const tiny = createCanvas(bw, bh)
-  const tCtx = tiny.getContext('2d')!
-  const sx = bw / canvasW
-  const sy = bh / canvasH
-  tCtx.drawImage(img, drawX * sx, drawY * sy, drawW * sx, drawH * sy)
+  if (ctxFilterSupported()) {
+    // Native blur: fast and sharp
+    ctx.filter = `blur(${blurPx}px) brightness(${brightness})`
+    ctx.drawImage(img, drawX, drawY, drawW, drawH)
+    ctx.filter = 'none'
+    return
+  }
+
+  // Fallback: multi-pass scale-down → scale-up for smooth blur on all browsers
+  // Each halving pass smooths out blocky artefacts from the previous pass.
+  const passes = [1 / 2, 1 / 4, 1 / 8]
+  let current: HTMLCanvasElement | HTMLImageElement = img
+  let currentW = canvasW
+  let currentH = canvasH
+
+  // Downscale passes — draw cover image at each level
+  let firstPass = true
+  for (const scale of passes) {
+    const pw = Math.max(1, Math.round(canvasW * scale))
+    const ph = Math.max(1, Math.round(canvasH * scale))
+    const pc = createCanvas(pw, ph)
+    const pCtx = pc.getContext('2d')!
+    pCtx.imageSmoothingEnabled = true
+    pCtx.imageSmoothingQuality = 'high'
+    if (firstPass) {
+      const sx = pw / canvasW
+      const sy = ph / canvasH
+      pCtx.drawImage(img, drawX * sx, drawY * sy, drawW * sx, drawH * sy)
+      firstPass = false
+    } else {
+      pCtx.drawImage(current as HTMLCanvasElement, 0, 0, pw, ph)
+    }
+    current = pc
+    currentW = pw
+    currentH = ph
+  }
+
+  // Single upscale to full canvas — browser smoothing creates the blur
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'high'
-  ctx.drawImage(tiny, 0, 0, canvasW, canvasH)
+  ctx.drawImage(current as HTMLCanvasElement, 0, 0, canvasW, canvasH)
+
+  // Brightness overlay
   ctx.fillStyle = `rgba(0,0,0,${1 - brightness})`
   ctx.fillRect(0, 0, canvasW, canvasH)
+  void currentW; void currentH
 }
 
 /**
@@ -117,7 +166,7 @@ export function renderFitWithBlurBackground(
   const ctx = canvas.getContext('2d')!
 
   const cover = calculateCoverDimensions(img.naturalWidth, img.naturalHeight, targetWidth, targetHeight)
-  drawBlurredCover(ctx, img, cover.offsetX, cover.offsetY, cover.drawWidth, cover.drawHeight, targetWidth, targetHeight, 0.65)
+  drawBlurredCover(ctx, img, cover.offsetX, cover.offsetY, cover.drawWidth, cover.drawHeight, targetWidth, targetHeight, 20, 0.65)
 
   // Foreground: fit mode, sharp and centered
   const fit = calculateFitDimensions(img.naturalWidth, img.naturalHeight, targetWidth, targetHeight)
@@ -152,9 +201,9 @@ export function renderExpandWithMirror(
   const rightX = offsetX + drawWidth
   const bottomY = offsetY + drawHeight
 
-  // ── Step 1: blurred cover as base (cross-browser, no ctx.filter) ─────────
+  // ── Step 1: blurred cover as base ─────────────────────────────────────────
   const cover = calculateCoverDimensions(img.naturalWidth, img.naturalHeight, targetWidth, targetHeight)
-  drawBlurredCover(ctx, img, cover.offsetX, cover.offsetY, cover.drawWidth, cover.drawHeight, targetWidth, targetHeight, 0.75)
+  drawBlurredCover(ctx, img, cover.offsetX, cover.offsetY, cover.drawWidth, cover.drawHeight, targetWidth, targetHeight, 24, 0.75)
 
   // ── Step 2: mirror fills ──────────────────────────────────────────────────
   // Vertical expansion (portrait canvas, landscape image)
