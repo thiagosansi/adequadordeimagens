@@ -42,6 +42,8 @@ import type { AIMode } from '@/lib/actions/cloudinary-ai'
 import { analyseImage } from '@/lib/image-analyser'
 import type { ImageAnalysis } from '@/lib/image-analyser'
 import { getPlatformRules } from '@/lib/platform-rules'
+import { detectTextCells } from '@/lib/text-detector'
+import { calculateTextPercentage } from '@/lib/text-overlay'
 
 export default function AppPage() {
   const router = useRouter()
@@ -80,7 +82,14 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
       setTextCoveragePercent(undefined)
 
       const img = new Image()
-      img.onload = () => setOriginalDimensions({ width: img.naturalWidth, height: img.naturalHeight })
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        setOriginalDimensions({ width: img.naturalWidth, height: img.naturalHeight })
+        // Auto-detect text coverage so the quality score reflects it without user interaction
+        const cells = detectTextCells(img)
+        const pct = calculateTextPercentage(cells)
+        setTextCoveragePercent(pct > 0 ? pct : undefined)
+      }
       img.src = url
 
       analyseImage(url).then(setImageAnalysis)
