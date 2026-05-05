@@ -1,14 +1,21 @@
 'use client'
 
 import { useState } from 'react'
+import piexif from 'piexifjs'
 import imageCompression from 'browser-image-compression'
-import { Download, Loader2, AlertTriangle } from 'lucide-react'
+import { Download, Loader2, AlertTriangle, ChevronDown, ChevronUp, Tag } from 'lucide-react'
 import type { MetaFormat, Requirement } from '@/shared/types/image'
 import { estimateDataUrlSizeKB } from '@/lib/canvas-renderer'
 import { uploadExport } from '@/lib/storage'
 import { saveProject } from '@/lib/projects'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+
+type Metadata = {
+  description: string
+  author: string
+  copyright: string
+}
 
 type Props = {
   processedDataUrl: string
@@ -17,19 +24,44 @@ type Props = {
   requirements?: Requirement[]
 }
 
+function injectExif(dataUrl: string, metadata: Metadata): string {
+  // Skip injection when all fields are empty
+  if (!metadata.description && !metadata.author && !metadata.copyright) return dataUrl
+
+  try {
+    const exifObj: { '0th': Record<number, unknown>; Exif: Record<number, unknown>; GPS: Record<number, unknown> } = { '0th': {}, Exif: {}, GPS: {} }
+    if (metadata.description) exifObj['0th']![piexif.ImageIFD.ImageDescription] = metadata.description
+    if (metadata.author) exifObj['0th']![piexif.ImageIFD.Artist] = metadata.author
+    if (metadata.copyright) exifObj['0th']![piexif.ImageIFD.Copyright] = metadata.copyright
+    const exifStr = piexif.dump(exifObj)
+    return piexif.insert(exifStr, dataUrl)
+  } catch {
+    // If EXIF injection fails (non-JPEG, corrupted data), return original
+    return dataUrl
+  }
+}
+
 export function DownloadPanel({ processedDataUrl, format, originalFileName, requirements = [] }: Props) {
   const [isCompressing, setIsCompressing] = useState(false)
+  const [showMetadata, setShowMetadata] = useState(false)
+  const [metadata, setMetadata] = useState<Metadata>({ description: '', author: '', copyright: '' })
 
   const estimatedKB = estimateDataUrlSizeKB(processedDataUrl)
   const estimatedMB = (estimatedKB / 1024).toFixed(1)
 
   const failedRequirements = requirements.filter((r) => r.status === 'fail')
   const hasFail = failedRequirements.length > 0
+  const hasMetadata = metadata.description || metadata.author || metadata.copyright
+
+  function updateField(field: keyof Metadata, value: string) {
+    setMetadata((prev) => ({ ...prev, [field]: value }))
+  }
 
   async function handleDownload() {
     setIsCompressing(true)
     try {
-      const res = await fetch(processedDataUrl)
+      const dataUrlWithExif = injectExif(processedDataUrl, metadata)
+      const res = await fetch(dataUrlWithExif)
       const blob = await res.blob()
       const file = new File([blob], 'output.jpg', { type: 'image/jpeg' })
 
@@ -121,6 +153,63 @@ export function DownloadPanel({ processedDataUrl, format, originalFileName, requ
           ))}
         </ul>
       )}
+
+      {/* Metadata section */}
+      <div className={cn('mt-3 border-t pt-3', hasFail ? 'border-amber-200' : 'border-green-200')}>
+        <button
+          onClick={() => setShowMetadata((v) => !v)}
+          className="flex w-full items-center justify-between text-xs text-gray-500 hover:text-gray-700"
+        >
+          <span className="flex items-center gap-1.5">
+            <Tag className="h-3 w-3" />
+            Metadados
+            {hasMetadata && (
+              <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-700">
+                preenchido
+              </span>
+            )}
+          </span>
+          {showMetadata ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+        </button>
+
+        {showMetadata && (
+          <div className="mt-3 space-y-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">Descrição</label>
+              <input
+                type="text"
+                value={metadata.description}
+                onChange={(e) => updateField('description', e.target.value)}
+                placeholder="Ex: Campanha verão 2025 — produto X"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 placeholder-gray-400 focus:border-blue-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">Autor / Agência</label>
+              <input
+                type="text"
+                value={metadata.author}
+                onChange={(e) => updateField('author', e.target.value)}
+                placeholder="Ex: Agência XYZ"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 placeholder-gray-400 focus:border-blue-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">Copyright</label>
+              <input
+                type="text"
+                value={metadata.copyright}
+                onChange={(e) => updateField('copyright', e.target.value)}
+                placeholder={`© ${new Date().getFullYear()} Empresa`}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 placeholder-gray-400 focus:border-blue-400 focus:outline-none"
+              />
+            </div>
+            <p className="text-xs text-gray-400">
+              Metadados incorporados no JPEG via EXIF. Não visíveis ao usuário final, úteis para organização interna.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
