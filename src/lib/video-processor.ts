@@ -1,4 +1,5 @@
 import type { VideoProcessorType } from '@/shared/types/video'
+import type { PixelCrop } from '@/shared/types/image'
 import { calculateAutoCrop } from './crop-calculator'
 
 // ─── Selector ─────────────────────────────────────────────────────────────────
@@ -20,6 +21,7 @@ export async function processWithCanvas(
   targetWidth: number,
   targetHeight: number,
   onProgress?: (ratio: number) => void,
+  manualCrop?: PixelCrop,
 ): Promise<Blob> {
   const objectUrl = URL.createObjectURL(file)
 
@@ -36,7 +38,7 @@ export async function processWithCanvas(
   })
 
   const { width: srcW, height: srcH } = { width: video.videoWidth, height: video.videoHeight }
-  const crop = calculateAutoCrop(srcW, srcH, targetWidth, targetHeight)
+  const crop = manualCrop ?? calculateAutoCrop(srcW, srcH, targetWidth, targetHeight)
 
   const canvas = document.createElement('canvas')
   canvas.width = targetWidth
@@ -134,6 +136,7 @@ export async function processWithFFmpeg(
   targetWidth: number,
   targetHeight: number,
   onProgress?: (ratio: number) => void,
+  manualCrop?: PixelCrop,
 ): Promise<Blob> {
   const { fetchFile } = await import('@ffmpeg/util')
 
@@ -144,9 +147,9 @@ export async function processWithFFmpeg(
   const inputName = 'input.' + (file.name.split('.').pop() ?? 'mp4')
   await ffmpeg.writeFile(inputName, await fetchFile(file))
 
-  // Load metadata to calculate crop
+  // Load metadata to calculate crop (skipped when manualCrop is provided)
   const meta = await getVideoDimensions(file)
-  const crop = calculateAutoCrop(meta.width, meta.height, targetWidth, targetHeight)
+  const crop = manualCrop ?? calculateAutoCrop(meta.width, meta.height, targetWidth, targetHeight)
 
   const cropFilter = `crop=${crop.width}:${crop.height}:${crop.x}:${crop.y},scale=${targetWidth}:${targetHeight}`
 
