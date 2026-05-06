@@ -25,8 +25,12 @@ export default function LoginPage() {
         await login(email, password)
         window.location.href = '/app'
       } else if (view === 'signup') {
-        await signUp(email, password)
-        setMessage('Conta criada! Verifique seu e-mail para confirmar.')
+        const session = await signUp(email, password)
+        if (session) {
+          window.location.href = '/app'
+        } else {
+          setMessage('Conta criada! Verifique seu e-mail para confirmar.')
+        }
       } else {
         await resetPassword(email)
         setMessage('Enviamos um link de recuperação para seu e-mail.')
