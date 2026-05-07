@@ -1,0 +1,87 @@
+import type { MetaFormat } from '@/shared/types/image'
+import type { MetaVideoFormat } from '@/shared/types/video'
+
+// TikTok safe zones: top 13% (header + username), bottom 25% (CTA + caption + icons)
+export const TIKTOK_IMAGE_FORMATS: MetaFormat[] = [
+  {
+    id: 'tiktok-in-feed',
+    label: 'In-Feed',
+    width: 1080,
+    height: 1920,
+    ratio: '9:16',
+    useCase: 'In-Feed Ads',
+    platform: 'tiktok',
+    category: 'in-feed',
+    safeZone: { top: 13, bottom: 25 },
+  },
+  {
+    id: 'tiktok-square',
+    label: 'Quadrado',
+    width: 1080,
+    height: 1080,
+    ratio: '1:1',
+    useCase: 'In-Feed (quadrado)',
+    platform: 'tiktok',
+    category: 'in-feed',
+  },
+  {
+    id: 'tiktok-landscape',
+    label: 'Paisagem',
+    width: 1920,
+    height: 1080,
+    ratio: '16:9',
+    useCase: 'In-Feed (horizontal)',
+    platform: 'tiktok',
+    category: 'in-feed',
+  },
+]
+
+export const TIKTOK_VIDEO_FORMATS: MetaVideoFormat[] = [
+  {
+    id: 'tiktok-video-in-feed',
+    label: 'In-Feed',
+    width: 1080,
+    height: 1920,
+    ratio: '9:16',
+    useCase: 'In-Feed Ads',
+    platform: 'tiktok',
+    category: 'in-feed',
+    safeZone: { top: 13, bottom: 25 },
+    minDurationSec: 5,
+    maxDurationSec: 60,
+    minWidth: 540,
+    minHeight: 960,
+    maxFileSizeGB: 0.5, // 500 MB
+  },
+  {
+    id: 'tiktok-video-square',
+    label: 'Quadrado',
+    width: 1080,
+    height: 1080,
+    ratio: '1:1',
+    useCase: 'In-Feed (quadrado)',
+    platform: 'tiktok',
+    category: 'in-feed',
+    minDurationSec: 5,
+    maxDurationSec: 60,
+    minWidth: 540,
+    minHeight: 540,
+    maxFileSizeGB: 0.5,
+  },
+  {
+    id: 'tiktok-video-topview',
+    label: 'TopView',
+    width: 1080,
+    height: 1920,
+    ratio: '9:16',
+    useCase: 'TopView (primeiro anúncio)',
+    platform: 'tiktok',
+    category: 'topview',
+    safeZone: { top: 13, bottom: 25 },
+    minDurationSec: 5,
+    maxDurationSec: 60,
+    minWidth: 540,
+    minHeight: 960,
+    maxFileSizeGB: 0.5,
+  },
+]

@@ -97,6 +97,43 @@ export function calculateCoverDimensions(
 }
 
 /**
+ * Calculates the optimal crop area anchored around a focal point (e.g., a face centroid)
+ * instead of the image center. Falls back to center crop when focalPoint is null.
+ */
+export function calculateFaceAwareCrop(
+  srcWidth: number,
+  srcHeight: number,
+  targetWidth: number,
+  targetHeight: number,
+  focalPoint: { x: number; y: number } | null,
+): PixelCrop {
+  if (!focalPoint) return calculateAutoCrop(srcWidth, srcHeight, targetWidth, targetHeight)
+
+  const targetRatio = targetWidth / targetHeight
+  const srcRatio = srcWidth / srcHeight
+
+  let cropWidth: number
+  let cropHeight: number
+
+  if (srcRatio > targetRatio) {
+    cropHeight = srcHeight
+    cropWidth = Math.round(srcHeight * targetRatio)
+  } else {
+    cropWidth = srcWidth
+    cropHeight = Math.round(srcWidth / targetRatio)
+  }
+
+  // Center the crop window on the focal point, then clamp to image bounds
+  let x = Math.round(focalPoint.x - cropWidth / 2)
+  let y = Math.round(focalPoint.y - cropHeight / 2)
+
+  x = Math.max(0, Math.min(x, srcWidth - cropWidth))
+  y = Math.max(0, Math.min(y, srcHeight - cropHeight))
+
+  return { x, y, width: cropWidth, height: cropHeight }
+}
+
+/**
  * Converts a percentage-based crop to pixel coordinates.
  */
 export function percentCropToPixels(

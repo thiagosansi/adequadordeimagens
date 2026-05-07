@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 
 type Props = {
   formatId: CarouselFormatId
-  mode: AdjustmentMode
+  mode: AdjustmentMode | null
   backgroundConfig: BackgroundConfig
   onFormatChange: (id: CarouselFormatId) => void
   onModeChange: (mode: AdjustmentMode) => void
@@ -14,12 +14,13 @@ type Props = {
 }
 
 const FORMATS: { id: CarouselFormatId; label: string; ratio: string; dimensions: string }[] = [
-  { id: 'feed-square', label: 'Quadrado', ratio: '1:1', dimensions: '1080×1080' },
-  { id: 'feed-portrait', label: 'Retrato', ratio: '4:5', dimensions: '1080×1350' },
+  { id: 'meta-feed-square', label: 'Quadrado', ratio: '1:1', dimensions: '1080×1080' },
+  { id: 'meta-feed-portrait', label: 'Retrato', ratio: '4:5', dimensions: '1080×1350' },
 ]
 
 const MODES: { id: AdjustmentMode; label: string }[] = [
   { id: 'auto-crop', label: 'Corte automático' },
+  { id: 'face-crop', label: 'Foco no rosto' },
   { id: 'expand', label: 'Expandir fundo' },
   { id: 'fit-solid', label: 'Cor de fundo' },
   { id: 'fit-blur', label: 'Fundo desfocado' },
@@ -83,6 +84,9 @@ export function CarouselGlobalSettings({
             </button>
           ))}
         </div>
+        {!mode && (
+          <p className="mt-1.5 text-xs text-gray-400">Selecione um modo para aplicar a todos os cards.</p>
+        )}
         {mode === 'interactive-crop' && (
           <p className="mt-1.5 text-xs text-amber-600">
             * Corte manual global usa auto-crop como base. Personalize cada card individualmente para definir o recorte.

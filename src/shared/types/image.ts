@@ -1,3 +1,5 @@
+import type { Platform } from './platform'
+
 export type MetaFormat = {
   id: string
   label: string
@@ -5,11 +7,12 @@ export type MetaFormat = {
   height: number
   ratio: string
   useCase: string
-  category: 'feed' | 'stories' | 'reels'
-  safeZone?: { top: number; bottom: number }
+  platform: Platform
+  category: string
+  safeZone?: { top?: number; bottom?: number; left?: number; right?: number }
 }
 
-export type AdjustmentMode = 'auto-crop' | 'interactive-crop' | 'fit-solid' | 'fit-blur' | 'expand'
+export type AdjustmentMode = 'auto-crop' | 'face-crop' | 'interactive-crop' | 'fit-solid' | 'fit-blur' | 'expand'
 
 export type BackgroundConfig = {
   type: 'solid' | 'blur'

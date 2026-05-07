@@ -6,9 +6,9 @@ export type CarouselCard = {
   originalUrl: string
   processedUrl: string | null
   useIndividualSettings: boolean
-  adjustmentMode: AdjustmentMode
+  adjustmentMode: AdjustmentMode | null
   backgroundConfig: BackgroundConfig
   interactiveCrop: PixelCrop | null
 }
 
-export type CarouselFormatId = 'feed-square' | 'feed-portrait'
+export type CarouselFormatId = 'meta-feed-square' | 'meta-feed-portrait'

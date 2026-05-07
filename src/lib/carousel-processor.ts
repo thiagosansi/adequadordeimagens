@@ -3,6 +3,7 @@ import type { AdjustmentMode, BackgroundConfig, MetaFormat } from '@/shared/type
 import {
   loadImage,
   renderAutoCrop,
+  renderFaceAwareCrop,
   renderCrop,
   renderFitWithSolidBackground,
   renderFitWithBlurBackground,
@@ -22,18 +23,23 @@ export function buildCarouselFileName(index: number, format: MetaFormat): string
 export async function processCard(
   card: CarouselCard,
   format: MetaFormat,
-  globalMode: AdjustmentMode,
+  globalMode: AdjustmentMode | null,
   globalBgConfig: BackgroundConfig,
 ): Promise<string> {
   const mode = card.useIndividualSettings ? card.adjustmentMode : globalMode
   const bgConfig = card.useIndividualSettings ? card.backgroundConfig : globalBgConfig
 
-  // interactive-crop as global falls back to auto-crop
+  // null or interactive-crop as global mode falls back to auto-crop
   const effectiveMode: AdjustmentMode =
-    !card.useIndividualSettings && mode === 'interactive-crop' ? 'auto-crop' : mode
+    mode === null || (!card.useIndividualSettings && mode === 'interactive-crop') ? 'auto-crop' : mode
 
   if (effectiveMode === 'auto-crop') {
     return renderAutoCrop(card.originalUrl, format.width, format.height)
+  }
+
+  if (effectiveMode === 'face-crop') {
+    const { dataUrl } = await renderFaceAwareCrop(card.originalUrl, format.width, format.height)
+    return dataUrl
   }
 
   const img = await loadImage(card.originalUrl)
@@ -65,7 +71,7 @@ export async function processCard(
 export async function processAllCards(
   cards: CarouselCard[],
   format: MetaFormat,
-  globalMode: AdjustmentMode,
+  globalMode: AdjustmentMode | null,
   globalBgConfig: BackgroundConfig,
   onProgress: (index: number) => void,
 ): Promise<CarouselCard[]> {

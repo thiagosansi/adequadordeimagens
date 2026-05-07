@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import type { CarouselCard, CarouselFormatId } from '@/shared/types/carousel'
-import type { AdjustmentMode, BackgroundConfig } from '@/shared/types/image'
+import type { AdjustmentMode, BackgroundConfig, PixelCrop } from '@/shared/types/image'
 import { findFormatById } from '@/lib/meta-formats'
+import { processAllCards } from '@/lib/carousel-processor'
 import { CarouselUploader } from './carousel-uploader'
 import { CarouselGlobalSettings } from './carousel-global-settings'
 import { CarouselCardItem } from './carousel-card-item'
@@ -19,7 +20,7 @@ function makeCard(file: File): CarouselCard {
     originalUrl: URL.createObjectURL(file),
     processedUrl: null,
     useIndividualSettings: false,
-    adjustmentMode: 'auto-crop',
+    adjustmentMode: null,
     backgroundConfig: { type: 'solid', color: '#ffffff' },
     interactiveCrop: null,
   }
@@ -27,11 +28,12 @@ function makeCard(file: File): CarouselCard {
 
 export function CarouselSection() {
   const [cards, setCards] = useState<CarouselCard[]>([])
-  const [formatId, setFormatId] = useState<CarouselFormatId>('feed-square')
-  const [globalMode, setGlobalMode] = useState<AdjustmentMode>('auto-crop')
+  const [formatId, setFormatId] = useState<CarouselFormatId>('meta-feed-square')
+  const [globalMode, setGlobalMode] = useState<AdjustmentMode | null>(null)
   const [globalBgConfig, setGlobalBgConfig] = useState<BackgroundConfig>({ type: 'solid', color: '#ffffff' })
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [isAutoProcessing, setIsAutoProcessing] = useState(false)
 
   const format = findFormatById(formatId)!
 
@@ -90,6 +92,43 @@ export function CarouselSection() {
   const handleCardsProcessed = useCallback((processed: CarouselCard[]) => {
     setCards(processed)
   }, [])
+
+  // ── Auto-processing (400ms debounce) ─────────────────────────────────────
+
+  function getEffectiveModeForCard(card: CarouselCard): AdjustmentMode | null {
+    if (!card.useIndividualSettings) return globalMode === 'interactive-crop' ? 'auto-crop' : globalMode
+    return card.adjustmentMode
+  }
+
+  function cropHash(crop: PixelCrop | null) {
+    if (!crop) return 'none'
+    return `${crop.x}x${crop.y}x${crop.width}x${crop.height}`
+  }
+
+  const canAutoProcess = cards.length > 0 && cards.every((c) => getEffectiveModeForCard(c) !== null)
+
+  const cardsSettingsKey = cards
+    .map((c) => `${c.id}|${c.useIndividualSettings}|${c.adjustmentMode}|${c.backgroundConfig.color}|${cropHash(c.interactiveCrop)}`)
+    .join(',')
+
+  const autoProcessRef = useRef<() => Promise<void>>(async () => {})
+  autoProcessRef.current = async () => {
+    if (!canAutoProcess) return
+    setIsAutoProcessing(true)
+    try {
+      const processed = await processAllCards(cards, format, globalMode, globalBgConfig, () => {})
+      setCards(processed)
+    } finally {
+      setIsAutoProcessing(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!canAutoProcess) return
+    const timer = setTimeout(() => { autoProcessRef.current() }, 400)
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardsSettingsKey, formatId, globalMode, globalBgConfig.color])
 
   // Initial upload state
   if (cards.length === 0) {
@@ -183,6 +222,7 @@ export function CarouselSection() {
         globalMode={globalMode}
         globalBgConfig={globalBgConfig}
         onCardsProcessed={handleCardsProcessed}
+        isExternalProcessing={isAutoProcessing}
       />
 
       {/* Preview gallery (appears after processing) */}
