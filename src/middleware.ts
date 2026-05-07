@@ -2,16 +2,22 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // Temporary: surface env var issues in Vercel runtime logs
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) console.error('[middleware] NEXT_PUBLIC_SUPABASE_URL missing')
-  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) console.error('[middleware] NEXT_PUBLIC_SUPABASE_ANON_KEY missing')
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  let supabaseResponse = NextResponse.next({ request })
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('[middleware] Supabase env vars missing — url:', !!supabaseUrl, 'key:', !!supabaseKey)
+      // Cannot authenticate; redirect /app to login, pass other routes
+      if (request.nextUrl.pathname.startsWith('/app')) {
+        return NextResponse.redirect(new URL('/login', request.url))
+      }
+      return NextResponse.next({ request })
+    }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+    let supabaseResponse = NextResponse.next({ request })
+
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll()
@@ -24,31 +30,36 @@ export async function middleware(request: NextRequest) {
           )
         },
       },
-    },
-  )
+    })
 
-  let user = null
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
+    let user = null
+    try {
+      const { data } = await supabase.auth.getUser()
+      user = data.user
+    } catch (err) {
+      console.error('[middleware] supabase.auth.getUser failed:', err)
+    }
+
+    const { pathname } = request.nextUrl
+
+    if (!user && pathname.startsWith('/app')) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    if (user && pathname === '/login') {
+      return NextResponse.redirect(new URL('/app', request.url))
+    }
+
+    return supabaseResponse
   } catch (err) {
-    // Auth check failed (network, Supabase outage, etc.) — log and allow
-    // the request through rather than returning 500. The page will handle
-    // unauthenticated state on the client side.
-    console.error('[middleware] supabase.auth.getUser failed:', err)
+    // Absolute fallback — never return 500 from middleware
+    console.error('[middleware] unhandled error:', err)
+    const { pathname } = request.nextUrl
+    if (pathname.startsWith('/app')) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    return NextResponse.next({ request })
   }
-
-  const { pathname } = request.nextUrl
-
-  if (!user && pathname.startsWith('/app')) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  if (user && pathname === '/login') {
-    return NextResponse.redirect(new URL('/app', request.url))
-  }
-
-  return supabaseResponse
 }
 
 export const config = {
