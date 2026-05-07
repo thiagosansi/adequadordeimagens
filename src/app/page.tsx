@@ -5,7 +5,6 @@ import { ProblemSection } from '@/components/landing/problem-section'
 import { SolutionSection } from '@/components/landing/solution-section'
 import { FeaturesGrid } from '@/components/landing/features-grid'
 import { BuiltForSection } from '@/components/landing/built-for-section'
-import { EnterpriseSection } from '@/components/landing/enterprise-section'
 import { RoadmapSection } from '@/components/landing/roadmap-section'
 import { CtaSection } from '@/components/landing/cta-section'
 
@@ -19,7 +18,6 @@ export default function LandingPage() {
       <SolutionSection />
       <FeaturesGrid />
       <BuiltForSection />
-      <EnterpriseSection />
       <RoadmapSection />
       <CtaSection />
     </div>

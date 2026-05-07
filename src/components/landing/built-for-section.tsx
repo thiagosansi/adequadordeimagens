@@ -321,19 +321,6 @@ function GrowthMockup() {
 
 const TABS = [
   {
-    id: 'agencies',
-    label: 'Agências',
-    icon: (
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-3.5 w-3.5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21H20.25M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-      </svg>
-    ),
-    color: '#2563EB',
-    headline: 'Escale produção criativa sem aumentar equipe',
-    sub: 'Gerencie múltiplos clientes, entregue assets em batch e mantenha padronização de marca em todas as contas.',
-    Mockup: AgencyMockup,
-  },
-  {
     id: 'buyers',
     label: 'Media Buyers',
     icon: (

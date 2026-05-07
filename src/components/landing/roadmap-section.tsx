@@ -45,11 +45,11 @@ const ITEMS = [
   },
   {
     id: 'prediction',
-    status: 'Em breve',
-    statusColor: '#0891B2',
-    statusBg: '#ECFEFF',
-    statusBorder: '#A5F3FC',
-    quarter: 'Q4 2025',
+    status: 'Disponível',
+    statusColor: '#16A34A',
+    statusBg: '#F0FDF4',
+    statusBorder: '#BBF7D0',
+    quarter: 'Lançado',
     title: 'Performance Prediction',
     description:
       'Estimativa de CTR e CPM antes da publicação com base em benchmarks históricos por formato e plataforma.',
@@ -133,11 +133,11 @@ const ITEMS = [
   },
   {
     id: 'intelligence',
-    status: 'Planejado',
-    statusColor: '#7C3AED',
-    statusBg: '#F5F3FF',
-    statusBorder: '#DDD6FE',
-    quarter: 'Q2 2026',
+    status: 'Disponível',
+    statusColor: '#16A34A',
+    statusBg: '#F0FDF4',
+    statusBorder: '#BBF7D0',
+    quarter: 'Lançado',
     title: 'Creative Intelligence',
     description:
       'Insights de adaptação cross-platform: quais elementos visuais performam melhor por canal, formato e audiência — com recomendações acionáveis.',
@@ -146,7 +146,7 @@ const ITEMS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
       </svg>
     ),
-    iconBg: '#F5F3FF',
+    iconBg: '#F0FDF4',
     visual: (
       <div className="relative h-full flex flex-col justify-center gap-1.5 px-2">
         {[
@@ -172,7 +172,7 @@ const ITEMS = [
           </div>
         ))}
         <div className="mt-1 rounded-lg px-2 py-1 text-[8px]"
-          style={{ background: '#F5F3FF', border: '1px solid #DDD6FE', color: '#7C3AED' }}>
+          style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#16A34A' }}>
           ✦ Meta tem melhor CPM para este formato
         </div>
       </div>
