@@ -6,8 +6,7 @@ import { useEffect, useState } from 'react'
 const CYCLE_MS = 8500
 const EASE = [0.16, 1, 0.3, 1] as const
 
-const IMG = (w: number, h: number) =>
-  `https://picsum.photos/seed/adframe-lifestyle/${w}/${h}`
+const HERO_IMG = '/hero-creative.png'
 
 const OUTPUTS = [
   {
@@ -17,7 +16,7 @@ const OUTPUTS = [
     color: '#1877f2',
     w: 90,
     h: 90,
-    objPos: 'center 30%',
+    objPos: 'center 25%',
     score: 'A',
     scoreBg: '#16A34A',
     pos: { top: 18, left: 22 },
@@ -30,7 +29,7 @@ const OUTPUTS = [
     color: '#1877f2',
     w: 54,
     h: 96,
-    objPos: 'center top',
+    objPos: 'center 15%',
     score: 'A',
     scoreBg: '#16A34A',
     pos: { top: 18, right: 22 },
@@ -43,7 +42,7 @@ const OUTPUTS = [
     color: '#4285f4',
     w: 122,
     h: 69,
-    objPos: 'center 45%',
+    objPos: 'center 30%',
     score: 'A',
     scoreBg: '#16A34A',
     pos: { bottom: 28, left: 14 },
@@ -56,7 +55,7 @@ const OUTPUTS = [
     color: '#ff0050',
     w: 52,
     h: 92,
-    objPos: 'center 20%',
+    objPos: 'center 10%',
     score: 'B',
     scoreBg: '#F59E0B',
     pos: { bottom: 28, right: 22 },
@@ -113,7 +112,7 @@ function OutputCard({
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={IMG(output.w * 2, output.h * 2)}
+              src={HERO_IMG}
               alt={output.label}
               width={output.w}
               height={output.h}
@@ -268,12 +267,12 @@ function CentralCard({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={IMG(width * 2, height * 2)}
+        src={HERO_IMG}
         alt="Creative original"
         width={width}
         height={height}
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ objectPosition: 'center 20%' }}
+        style={{ objectPosition: 'center 15%' }}
       />
 
       {/* Ad overlay */}
@@ -489,7 +488,7 @@ export function TransformationEngine() {
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={IMG(o.w, o.h)}
+                      src={HERO_IMG}
                       alt={o.label}
                       className="absolute inset-0 w-full h-full object-cover"
                       style={{ objectPosition: o.objPos }}
