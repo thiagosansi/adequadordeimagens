@@ -23,7 +23,7 @@ export function SaliencyOverlay({ result, imgWidth, imgHeight }: Props) {
     canvas.width = imgWidth
     canvas.height = imgHeight
 
-    const ctx = canvas.getContext('2d')!
+    const ctx = canvas.getContext('2d', { willReadFrequently: false })!
     ctx.clearRect(0, 0, imgWidth, imgHeight)
 
     const { scores, size, focal, srcWidth, srcHeight } = result

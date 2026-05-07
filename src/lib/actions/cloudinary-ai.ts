@@ -107,6 +107,7 @@ export async function processImageWithAI(
               fetch_format: 'jpg',
               quality: 90,
               secure: true,
+              analytics: false,
             })
           : cloudinary.url(uploaded.public_id, {
               width,
@@ -116,6 +117,7 @@ export async function processImageWithAI(
               fetch_format: 'jpg',
               quality: 90,
               secure: true,
+              analytics: false,
             })
 
       const buffer = await fetchWithRetry(transformUrl)

@@ -32,7 +32,7 @@ export function detectTextCells(img: HTMLImageElement): Set<number> {
   canvas.width = Math.round(img.naturalWidth * scale)
   canvas.height = Math.round(img.naturalHeight * scale)
 
-  const ctx = canvas.getContext('2d')!
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
   const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height)
