@@ -22,6 +22,10 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: 'AdFrame — Creative Transformation Engine',
   description: 'Transforme qualquer criativo em assets prontos para performar em todas as plataformas. Meta, TikTok, Google Ads e mais — com IA.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
 }
 
 const GA_ID = 'G-3Q75FYB598'

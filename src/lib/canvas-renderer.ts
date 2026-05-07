@@ -349,7 +349,7 @@ export function analyseSafeZoneContent(
   const { naturalWidth: w, naturalHeight: h } = img
 
   const canvas = createCanvas(w, h)
-  const ctx = canvas.getContext('2d')!
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!
   ctx.drawImage(img, 0, 0, w, h)
 
   function horizontalBandVariance(y0: number, y1: number): number {
