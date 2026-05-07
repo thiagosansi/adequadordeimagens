@@ -12,9 +12,10 @@ import { cn } from '@/lib/utils'
 type Props = {
   cards: CarouselCard[]
   format: MetaFormat
-  globalMode: AdjustmentMode
+  globalMode: AdjustmentMode | null
   globalBgConfig: BackgroundConfig
   onCardsProcessed: (cards: CarouselCard[]) => void
+  isExternalProcessing?: boolean
 }
 
 async function blobUrlToDataUrl(url: string): Promise<string> {
@@ -28,7 +29,7 @@ async function blobUrlToDataUrl(url: string): Promise<string> {
   })
 }
 
-function getEffectiveMode(card: CarouselCard, globalMode: AdjustmentMode): AdjustmentMode {
+function getEffectiveMode(card: CarouselCard, globalMode: AdjustmentMode | null): AdjustmentMode | null {
   if (!card.useIndividualSettings) return globalMode === 'interactive-crop' ? 'auto-crop' : globalMode
   return card.adjustmentMode
 }
@@ -39,6 +40,7 @@ export function CarouselDownloadPanel({
   globalMode,
   globalBgConfig,
   onCardsProcessed,
+  isExternalProcessing = false,
 }: Props) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isAIProcessing, setIsAIProcessing] = useState(false)
@@ -48,8 +50,11 @@ export function CarouselDownloadPanel({
   const processedCount = cards.filter((c) => c.processedUrl !== null).length
   const allProcessed = processedCount === cards.length && cards.length > 0
 
+  // All cards must have an effective mode before processing
+  const canProcess = cards.every((c) => getEffectiveMode(c, globalMode) !== null)
+
   // Show AI button if any card uses a mode that benefits from AI
-  const hasAIEligibleCards = cards.some((card) => {
+  const hasAIEligibleCards = canProcess && cards.some((card) => {
     const mode = getEffectiveMode(card, globalMode)
     return mode === 'auto-crop' || mode === 'expand'
   })
@@ -87,7 +92,9 @@ export function CarouselDownloadPanel({
         if (mode === 'auto-crop' || mode === 'expand') {
           const dataUrl = await blobUrlToDataUrl(card.originalUrl)
           const aiMode = mode === 'expand' ? 'generative-fill' : 'smart-crop'
-          processedUrl = await processImageWithAI(dataUrl, format.width, format.height, aiMode)
+          const aiResult = await processImageWithAI(dataUrl, format.width, format.height, aiMode)
+          if (!aiResult.ok) throw new Error(aiResult.error)
+          processedUrl = aiResult.dataUrl
         } else {
           processedUrl = await processCard(card, format, globalMode, globalBgConfig)
         }
@@ -128,7 +135,7 @@ export function CarouselDownloadPanel({
 
   if (cards.length === 0) return null
 
-  const anyProcessing = isProcessing || isAIProcessing
+  const anyProcessing = isProcessing || isAIProcessing || isExternalProcessing
 
   return (
     <div className="space-y-2">
@@ -149,10 +156,10 @@ export function CarouselDownloadPanel({
         <div className="flex flex-wrap gap-2">
           <button
             onClick={handleProcessAll}
-            disabled={anyProcessing || cards.length === 0}
+            disabled={anyProcessing || !canProcess}
             className={cn(
               'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors',
-              anyProcessing || cards.length === 0
+              anyProcessing || !canProcess
                 ? 'cursor-not-allowed bg-gray-200 text-gray-400'
                 : 'bg-blue-600 text-white hover:bg-blue-700',
             )}

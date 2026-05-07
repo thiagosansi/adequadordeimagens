@@ -174,8 +174,12 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
       })
       const aiMode = adjustmentMode === 'expand' ? 'generative-fill' : 'smart-crop'
       const result = await processImageWithAI(dataUrl, selectedFormat.width, selectedFormat.height, aiMode)
-      setProcessedUrl(result)
-      setLastAIMode(aiMode)
+      if (!result.ok) {
+        setAIError(result.error)
+      } else {
+        setProcessedUrl(result.dataUrl)
+        setLastAIMode(aiMode)
+      }
     } catch (err) {
       setAIError(err instanceof Error ? err.message : 'Erro ao processar com IA')
     } finally {
