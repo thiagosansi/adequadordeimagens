@@ -27,7 +27,16 @@ export async function middleware(request: NextRequest) {
     },
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch (err) {
+    // Auth check failed (network, Supabase outage, etc.) — log and allow
+    // the request through rather than returning 500. The page will handle
+    // unauthenticated state on the client side.
+    console.error('[middleware] supabase.auth.getUser failed:', err)
+  }
 
   const { pathname } = request.nextUrl
 
