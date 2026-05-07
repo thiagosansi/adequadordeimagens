@@ -1,18 +1,21 @@
 'use server'
 
-import { v2 as cloudinary } from 'cloudinary'
-
-type Credentials = {
-  cloud_name: string
-  api_key: string
-  api_secret: string
-}
+// NOTE: cloudinary is imported dynamically (not at module level) because its
+// config() runs at import time and throws if CLOUDINARY_URL env var exists but
+// has an invalid format (must start with 'cloudinary://'). A static import
+// would crash the module before any try/catch could handle it.
 
 export type AIMode = 'smart-crop' | 'generative-fill'
 
 export type AIResult =
   | { ok: true; dataUrl: string }
   | { ok: false; error: string }
+
+type Credentials = {
+  cloud_name: string
+  api_key: string
+  api_secret: string
+}
 
 /**
  * Returns one set of credentials.
@@ -70,7 +73,7 @@ async function fetchWithRetry(
 /**
  * Processes an image with Cloudinary AI.
  * Returns { ok: true, dataUrl } on success or { ok: false, error } on failure.
- * Never throws — errors are always returned as { ok: false }.
+ * Never throws — all errors are returned as { ok: false }.
  */
 export async function processImageWithAI(
   dataUrl: string,
@@ -82,8 +85,16 @@ export async function processImageWithAI(
     const creds = pickCredentials()
 
     if (!creds.api_secret) {
-      return { ok: false, error: 'Credenciais Cloudinary não configuradas. Configure as variáveis de ambiente no Vercel.' }
+      return {
+        ok: false,
+        error: 'Credenciais Cloudinary não configuradas. Configure as variáveis de ambiente no Vercel.',
+      }
     }
+
+    // Dynamic import — keeps cloudinary's module-level init inside this try/catch.
+    // If CLOUDINARY_URL env var is malformed, cloudinary throws at import time;
+    // with a static import that would 500 before the function body runs.
+    const { v2: cloudinary } = await import('cloudinary')
 
     cloudinary.config({
       cloud_name: creds.cloud_name,
