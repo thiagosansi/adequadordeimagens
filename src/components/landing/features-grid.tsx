@@ -213,6 +213,101 @@ function BatchVisual({ active }: { active: boolean }) {
   )
 }
 
+function PerformancePredictionVisual({ active }: { active: boolean }) {
+  const bars = [
+    { label: 'Feed 1:1', ctr: 4.2, color: '#16A34A' },
+    { label: 'Story',    ctr: 3.1, color: '#D97706' },
+    { label: 'Banner',   ctr: 2.4, color: '#DC2626' },
+    { label: 'Reel',     ctr: 5.8, color: '#16A34A' },
+    { label: 'Carrossel',ctr: 3.7, color: '#D97706' },
+  ]
+  const max = 6
+  return (
+    <div className="relative w-full h-full rounded-t-xl overflow-hidden flex flex-col justify-end gap-0 px-4 pb-5 pt-3"
+      style={{ background: '#F8FAFC' }}>
+      <div className="flex items-end gap-1.5 h-full">
+        {bars.map(({ label, ctr, color }, i) => (
+          <div key={label} className="flex flex-col items-center gap-1 flex-1">
+            <span className="text-[7px] font-bold" style={{ color }}>{ctr}%</span>
+            <motion.div
+              className="w-full rounded-t-sm"
+              style={{ backgroundColor: `${color}22`, border: `1px solid ${color}55` }}
+              initial={{ height: 0 }}
+              animate={active ? { height: `${(ctr / max) * 80}px` } : { height: 8 }}
+              transition={{ duration: 0.55, delay: i * 0.07, ease: EASE }}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="absolute bottom-1.5 left-4 right-4 flex justify-between">
+        {bars.map(({ label }) => (
+          <span key={label} className="text-[6px] text-center flex-1 truncate" style={{ color: '#94A3B8' }}>{label}</span>
+        ))}
+      </div>
+      {active && (
+        <motion.div
+          className="absolute top-2.5 right-3 rounded-lg px-2 py-1 text-[8px] font-semibold"
+          style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#16A34A' }}
+          initial={{ opacity: 0, x: 6 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          CTR estimado por formato
+        </motion.div>
+      )}
+    </div>
+  )
+}
+
+function CreativeIntelligenceVisual({ active }: { active: boolean }) {
+  const platforms = [
+    { name: 'Meta',    score: 87, color: '#1877f2' },
+    { name: 'TikTok',  score: 73, color: '#ff0050' },
+    { name: 'Google',  score: 91, color: '#4285f4' },
+    { name: 'LinkedIn',score: 64, color: '#0a66c2' },
+  ]
+  return (
+    <div className="relative w-full h-full rounded-t-xl overflow-hidden flex items-center justify-center"
+      style={{ background: '#F8FAFC' }}>
+      <motion.div
+        className="w-44 rounded-xl p-3"
+        style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+        initial={{ opacity: 0, y: 8 }}
+        animate={active ? { opacity: 1, y: 0 } : { opacity: 0.5, y: 8 }}
+        transition={{ duration: 0.4, ease: EASE }}
+      >
+        <div className="text-[9px] font-semibold mb-2.5" style={{ color: '#0F172A' }}>Performance por canal</div>
+        {platforms.map(({ name, score, color }, i) => (
+          <div key={name} className="mb-1.5">
+            <div className="flex justify-between mb-0.5">
+              <span className="text-[8px]" style={{ color: '#64748B' }}>{name}</span>
+              <span className="text-[8px] font-bold" style={{ color }}>{score}</span>
+            </div>
+            <div className="h-1 rounded-full overflow-hidden" style={{ background: '#F1F5F9' }}>
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: color }}
+                initial={{ width: 0 }}
+                animate={active ? { width: `${score}%` } : { width: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.08, ease: EASE }}
+              />
+            </div>
+          </div>
+        ))}
+        <motion.div
+          className="mt-2 rounded px-1.5 py-1 text-[7px]"
+          style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#2563EB' }}
+          initial={{ opacity: 0 }}
+          animate={active ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          ✦ Google tem melhor CPM para este formato
+        </motion.div>
+      </motion.div>
+    </div>
+  )
+}
+
 function SafeZoneMiniVisual({ active }: { active: boolean }) {
   return (
     <div className="relative w-full h-full rounded-t-xl overflow-hidden">
@@ -342,6 +437,32 @@ const FEATURES = [
     title: 'Safe Zones',
     description: 'Evite perdas críticas mapeando as áreas bloqueadas por cada plataforma.',
     Visual: SafeZoneMiniVisual,
+  },
+  {
+    id: 'performance-prediction',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-4 w-4">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.307a11.95 11.95 0 0 1 5.814-5.519l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+      </svg>
+    ),
+    color: '#0891B2',
+    iconBg: '#ECFEFF',
+    title: 'Performance Prediction',
+    description: 'Estime CTR e CPM por formato antes de publicar, com base em benchmarks históricos por plataforma.',
+    Visual: PerformancePredictionVisual,
+  },
+  {
+    id: 'creative-intelligence',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-4 w-4">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+      </svg>
+    ),
+    color: '#7C3AED',
+    iconBg: '#F5F3FF',
+    title: 'Creative Intelligence',
+    description: 'Veja quais elementos visuais performam melhor por canal, formato e audiência — com recomendações acionáveis.',
+    Visual: CreativeIntelligenceVisual,
   },
 ] as const
 
