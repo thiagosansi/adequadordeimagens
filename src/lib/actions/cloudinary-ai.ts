@@ -81,20 +81,22 @@ export async function processImageWithAI(
   height: number,
   mode: AIMode,
 ): Promise<AIResult> {
+  console.log('[AI] processImageWithAI called — mode:', mode, 'size:', dataUrl.length)
   try {
     const creds = pickCredentials()
+    console.log('[AI] credentials — cloud_name:', creds.cloud_name, 'has_secret:', !!creds.api_secret)
 
     if (!creds.api_secret) {
+      console.warn('[AI] no api_secret configured')
       return {
         ok: false,
         error: 'Credenciais Cloudinary não configuradas. Configure as variáveis de ambiente no Vercel.',
       }
     }
 
-    // Dynamic import — keeps cloudinary's module-level init inside this try/catch.
-    // If CLOUDINARY_URL env var is malformed, cloudinary throws at import time;
-    // with a static import that would 500 before the function body runs.
+    console.log('[AI] importing cloudinary...')
     const { v2: cloudinary } = await import('cloudinary')
+    console.log('[AI] cloudinary imported')
 
     cloudinary.config({
       cloud_name: creds.cloud_name,
@@ -102,10 +104,12 @@ export async function processImageWithAI(
       api_secret: creds.api_secret,
     })
 
+    console.log('[AI] uploading to cloudinary...')
     const uploaded = await cloudinary.uploader.upload(dataUrl, {
       folder: 'adframe-temp',
       resource_type: 'image',
     })
+    console.log('[AI] uploaded — public_id:', uploaded.public_id)
 
     try {
       const transformUrl =
@@ -139,6 +143,7 @@ export async function processImageWithAI(
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erro desconhecido ao processar com IA'
+    console.error('[AI] caught error:', message)
     return { ok: false, error: message }
   }
 }
