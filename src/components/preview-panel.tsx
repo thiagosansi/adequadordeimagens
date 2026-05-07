@@ -34,6 +34,7 @@ export function PreviewPanel({ originalUrl, processedUrl, format }: Props) {
   const handleToggleSaliency = useCallback(async () => {
     if (showSaliency) {
       setShowSaliency(false)
+      setView('processed')
       return
     }
     // Switch to original view so heatmap overlays the source image

@@ -6,7 +6,7 @@ import { Download, Loader2, Play, Sparkles } from 'lucide-react'
 import type { CarouselCard } from '@/shared/types/carousel'
 import type { AdjustmentMode, BackgroundConfig, MetaFormat } from '@/shared/types/image'
 import { processAllCards, processCard, buildCarouselFileName } from '@/lib/carousel-processor'
-import { processImageWithAI } from '@/lib/actions/cloudinary-ai'
+import { processImageWithAI } from '@/lib/ai-process-client'
 import { cn } from '@/lib/utils'
 
 type Props = {
