@@ -381,7 +381,7 @@ export function BuiltForSection() {
   return (
     <section
       id="solucoes"
-      className="relative py-16 sm:py-24"
+      className="relative py-16 sm:py-24 overflow-x-hidden"
       style={{ backgroundColor: '#F1F5F9' }}
     >
       <div className="mx-auto max-w-6xl px-6">
@@ -494,13 +494,13 @@ export function BuiltForSection() {
               </AnimatePresence>
             </div>
 
-            {/* Right: mockup */}
-            <div className="relative p-4 sm:p-6 overflow-x-auto" style={{ minHeight: 280, background: '#FAFBFC' }}>
+            {/* Right: mockup — scrollable on mobile */}
+            <div className="relative p-4 sm:p-6 overflow-x-auto min-w-0" style={{ minHeight: 280, background: '#FAFBFC' }}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={tab.id}
                   className="h-full"
-                  style={{ minHeight: 260, minWidth: 480 }}
+                  style={{ minHeight: 260, minWidth: 500 }}
                   initial={{ opacity: 0, x: 14 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -14 }}
