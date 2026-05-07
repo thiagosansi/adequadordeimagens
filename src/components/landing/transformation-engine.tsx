@@ -42,7 +42,7 @@ const OUTPUTS = [
     color: '#4285f4',
     w: 122,
     h: 69,
-    objPos: 'center 30%',
+    objPos: 'center 8%',
     score: 'A',
     scoreBg: '#16A34A',
     pos: { bottom: 28, left: 14 },
