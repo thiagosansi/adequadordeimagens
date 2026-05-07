@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Space_Grotesk } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 
@@ -13,9 +13,15 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
+const spaceGrotesk = Space_Grotesk({
+  variable: '--font-space-grotesk',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+})
+
 export const metadata: Metadata = {
-  title: 'AdFrame — Meta Ads',
-  description: 'Ajuste suas imagens para todos os formatos do Meta Ads sem distorção.',
+  title: 'AdFrame — Creative Transformation Engine',
+  description: 'Transforme qualquer criativo em assets prontos para performar em todas as plataformas. Meta, TikTok, Google Ads e mais — com IA.',
 }
 
 const GA_ID = 'G-3Q75FYB598'
@@ -27,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} antialiased`}>
         {children}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}

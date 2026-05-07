@@ -1,1 +1,50 @@
 @import "tailwindcss";
+
+@theme {
+  /* ── Brand dark tokens (kept for app internals) ── */
+  --color-brand-950: #050816;
+  --color-brand-900: #0d1117;
+  --color-brand-800: #161b27;
+  --color-brand-700: #1e2535;
+  --color-accent-indigo: #4f46e5;
+  --color-accent-blue: #3b82f6;
+  --color-accent-cyan: #06b6d4;
+  --color-accent-violet: #7c3aed;
+
+  /* ── Light UI tokens ── */
+  --color-app-bg: #F8FAFC;
+  --color-app-surface: #FFFFFF;
+  --color-app-muted: #F1F5F9;
+  --color-app-border: #E2E8F0;
+  --color-app-text: #0F172A;
+  --color-app-text-muted: #64748B;
+  --color-app-primary: #2563EB;
+  --color-app-primary-hover: #1D4ED8;
+  --color-app-success: #16A34A;
+  --color-app-warning: #F59E0B;
+  --color-app-danger: #DC2626;
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+}
+
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-glow-breathe {
+  animation: glow-breathe 4s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
