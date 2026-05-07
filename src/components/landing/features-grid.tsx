@@ -483,38 +483,38 @@ function FeatureCard({
       transition={{ duration: 0.55, delay: index * 0.08, ease: EASE }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="group flex flex-col overflow-hidden rounded-2xl transition-all duration-300"
+      className="group flex flex-col rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
       style={{
         backgroundColor: '#FFFFFF',
         border: `1px solid ${hovered ? '#BFDBFE' : '#E2E8F0'}`,
         boxShadow: hovered
           ? '0 8px 32px rgba(37,99,235,0.08), 0 2px 8px rgba(0,0,0,0.04)'
           : '0 2px 8px rgba(0,0,0,0.04)',
-        transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
       }}
     >
-      {/* Visual preview */}
-      <div style={{ height: 160 }}>
-        <feature.Visual active={hovered} />
-      </div>
-
-      {/* Card body */}
-      <div
-        className="flex flex-col flex-1 p-5 border-t"
-        style={{ borderColor: '#F1F5F9' }}
-      >
+      {/* Card body — icon + title + description */}
+      <div className="p-5 pb-3">
         <div
-          className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg"
+          className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl"
           style={{
             backgroundColor: hovered ? feature.iconBg : '#F8FAFC',
             color: feature.color,
-            border: '1px solid #E2E8F0',
+            border: `1px solid ${hovered ? feature.iconBg : '#E2E8F0'}`,
+            transition: 'background-color 0.2s, border-color 0.2s',
           }}
         >
           {feature.icon}
         </div>
-        <h3 className="mb-1.5 text-sm font-semibold" style={{ color: '#0F172A' }}>{feature.title}</h3>
-        <p className="text-xs leading-relaxed" style={{ color: '#64748B' }}>{feature.description}</p>
+        <h3 className="mb-2 text-base font-semibold" style={{ color: '#0F172A' }}>{feature.title}</h3>
+        <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>{feature.description}</p>
+      </div>
+
+      {/* Visual — inset box at the bottom */}
+      <div
+        className="mx-4 mb-4 flex-1 rounded-xl overflow-hidden"
+        style={{ minHeight: 120, background: '#F8FAFC', border: '1px solid #E2E8F0' }}
+      >
+        <feature.Visual active={hovered} />
       </div>
     </motion.div>
   )
