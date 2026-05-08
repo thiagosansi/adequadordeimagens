@@ -52,7 +52,7 @@ const ITEMS = [
     quarter: 'Q1 2026',
     title: 'A/B Variants',
     description:
-      'Geração automática de variantes visuais para testes A/B. O sistema cria versões com enquadramentos e composições diferentes a partir de um único upload.',
+      'Geração de 3 imagens distintas por IA a partir de 1 upload — mesmos elementos visuais, composições diferentes — prontas para testes A/B reais.',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-6 w-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
@@ -60,32 +60,44 @@ const ITEMS = [
     ),
     iconBg: '#FFFBEB',
     visual: (
-      <div className="relative h-full flex items-center justify-center gap-2">
-        {['A', 'B', 'C'].map((v, i) => (
-          <div key={v} className="flex flex-col items-center gap-1">
-            <div className="relative overflow-hidden rounded-md"
-              style={{ width: 40, height: i === 1 ? 56 : 48, border: `1px solid ${i === 0 ? '#FDE68A' : '#E2E8F0'}` }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`https://picsum.photos/seed/variant-${v}/40/60`} alt="" className="w-full h-full object-cover" />
+      <div className="h-full flex flex-col justify-between py-2 px-3">
+        {/* A/B/C thumbnails */}
+        <div className="flex items-end justify-center gap-2">
+          {(['A', 'B', 'C'] as const).map((v, i) => (
+            <div key={v} className="flex flex-col items-center gap-1">
+              <div className="relative overflow-hidden rounded-md"
+                style={{ width: 36, height: i === 1 ? 52 : 44, border: `1px solid ${i === 0 ? '#FDE68A' : '#E2E8F0'}` }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`https://picsum.photos/seed/variant-${v}/40/60`} alt="" className="w-full h-full object-cover" />
+              </div>
+              <div className="text-[8px] font-bold rounded-full px-1.5 py-px"
+                style={{
+                  background: i === 0 ? '#FFFBEB' : '#F8FAFC',
+                  color: i === 0 ? '#D97706' : '#94A3B8',
+                  border: `1px solid ${i === 0 ? '#FDE68A' : '#E2E8F0'}`,
+                }}>
+                {v}
+              </div>
             </div>
-            <div className="text-[8px] font-bold rounded-full px-1.5 py-px"
-              style={{
-                background: i === 0 ? '#FFFBEB' : '#F8FAFC',
-                color: i === 0 ? '#D97706' : '#94A3B8',
-                border: `1px solid ${i === 0 ? '#FDE68A' : '#E2E8F0'}`,
-              }}>
-              {v}
+          ))}
+        </div>
+
+        {/* Tech comparison */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[8px] font-medium shrink-0" style={{ color: '#94A3B8' }}>Via IA:</span>
+          <div className="flex gap-1 flex-wrap">
+            <div className="flex items-center gap-1 rounded-md px-1.5 py-0.5"
+              style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+              <span className="text-[7px] font-bold" style={{ color: '#16A34A' }}>fal.ai</span>
+              <span className="text-[7px]" style={{ color: '#64748B' }}>FLUX · ~$0,05/set</span>
+            </div>
+            <div className="flex items-center gap-1 rounded-md px-1.5 py-0.5"
+              style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span className="text-[7px] font-bold" style={{ color: '#475569' }}>OpenAI</span>
+              <span className="text-[7px]" style={{ color: '#94A3B8' }}>~$0,25/set</span>
             </div>
           </div>
-        ))}
-        <motion.div
-          className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white"
-          style={{ backgroundColor: '#D97706' }}
-          animate={{ scale: [1, 1.15, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          +
-        </motion.div>
+        </div>
       </div>
     ),
   },
