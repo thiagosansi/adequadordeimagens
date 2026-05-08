@@ -202,7 +202,7 @@ function EcommerceMockup() {
 
       <div className="flex-1">
         <div className="text-[9px] font-bold uppercase tracking-wider mb-2" style={{ color: '#94A3B8' }}>Todos os placements</div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-end">
           {platforms.map((p, i) => (
             <motion.div
               key={p.name}
@@ -213,8 +213,8 @@ function EcommerceMockup() {
             >
               <div className="relative overflow-hidden rounded-lg"
                 style={{
-                  width: p.ratio === '9:16' ? 50 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 92 : 68,
-                  height: p.ratio === '9:16' ? 88 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 48 : 68,
+                  width: p.ratio === '9:16' ? 62 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 116 : 86,
+                  height: p.ratio === '9:16' ? 110 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 61 : 86,
                   border: `1px solid ${p.color}30`,
                 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
