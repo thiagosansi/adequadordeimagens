@@ -92,7 +92,7 @@ function MediaBuyerMockup() {
       <div className="relative w-44 flex-shrink-0 rounded-xl overflow-hidden"
         style={{ height: 220, border: '1px solid #E2E8F0' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={IMG(176, 220, 'mediabuyer-hero')} alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 20%' }} />
+        <img src="/built-for-photographer.png" alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 45%' }} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         <div className="absolute bottom-2 left-2 right-2">
           <div className="text-[9px] font-bold text-white">Criativo original</div>
@@ -135,10 +135,10 @@ function MediaBuyerMockup() {
 
       <div className="flex-1 grid grid-cols-2 gap-1.5">
         {[
-          { label: '1:1 Feed', seed: 'mb-f1', w: 64, h: 64 },
-          { label: '9:16 Story', seed: 'mb-f2', w: 44, h: 78 },
-          { label: '16:9 Banner', seed: 'mb-f3', w: 90, h: 50 },
-          { label: '4:5 Feed', seed: 'mb-f4', w: 56, h: 70 },
+          { label: '1:1 Feed',   w: 64, h: 64,  objPos: 'center 50%' },
+          { label: '9:16 Story', w: 44, h: 78,  objPos: 'center 40%' },
+          { label: '16:9 Banner',w: 90, h: 50,  objPos: 'center 50%' },
+          { label: '4:5 Feed',   w: 56, h: 70,  objPos: 'center 45%' },
         ].map((f, i) => (
           <motion.div
             key={f.label}
@@ -150,7 +150,7 @@ function MediaBuyerMockup() {
             <div className="relative overflow-hidden rounded-md mx-auto"
               style={{ width: f.w, height: f.h, border: '1px solid #E2E8F0' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={IMG(f.w * 2, f.h * 2, f.seed)} alt="" className="w-full h-full object-cover" />
+              <img src="/built-for-photographer.png" alt={f.label} className="w-full h-full object-cover" style={{ objectPosition: f.objPos }} />
               <div className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center"
                 style={{ background: '#16A34A' }}>
                 <svg viewBox="0 0 8 8" fill="none" className="w-2 h-2" stroke="white" strokeWidth={2}>
