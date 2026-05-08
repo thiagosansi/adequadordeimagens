@@ -213,8 +213,8 @@ function EcommerceMockup() {
             >
               <div className="relative overflow-hidden rounded-lg"
                 style={{
-                  width: p.ratio === '9:16' ? 62 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 116 : 86,
-                  height: p.ratio === '9:16' ? 110 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 61 : 86,
+                  width: p.ratio === '9:16' ? 48 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 112 : 78,
+                  height: p.ratio === '9:16' ? 85 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 63 : 78,
                   border: `1px solid ${p.color}30`,
                 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
