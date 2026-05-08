@@ -135,10 +135,10 @@ function MediaBuyerMockup() {
 
       <div className="flex-1 grid grid-cols-2 gap-1.5">
         {[
-          { label: '1:1 Feed',   w: 64, h: 64,  objPos: 'center 50%' },
-          { label: '9:16 Story', w: 44, h: 78,  objPos: 'center 40%' },
-          { label: '16:9 Banner',w: 90, h: 50,  objPos: 'center 50%' },
-          { label: '4:5 Feed',   w: 56, h: 70,  objPos: 'center 45%' },
+          { label: '1:1 Feed',    w: 100, h: 100, objPos: 'center 50%' },
+          { label: '9:16 Story',  w: 58,  h: 102, objPos: 'center 40%' },
+          { label: '16:9 Banner', w: 124, h: 70,  objPos: 'center 50%' },
+          { label: '4:5 Feed',    w: 82,  h: 102, objPos: 'center 45%' },
         ].map((f, i) => (
           <motion.div
             key={f.label}
