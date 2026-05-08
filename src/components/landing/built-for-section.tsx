@@ -206,7 +206,7 @@ function EcommerceMockup() {
           {platforms.map((p, i) => (
             <motion.div
               key={p.name}
-              className="flex flex-col items-center gap-1"
+              className="flex flex-col-reverse items-center gap-1"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.07, duration: 0.4, ease: EASE }}
