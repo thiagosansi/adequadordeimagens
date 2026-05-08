@@ -441,8 +441,8 @@ export function TransformationEngine() {
         <ConnectionLines visible={phase >= 4} />
 
         {/* Central creative */}
-        <div className="absolute" style={{ top: '50%', left: '50%', marginTop: -117, marginLeft: -84, zIndex: 10 }}>
-          <CentralCard cropControls={cropControls} scanActive={scanActive} phase={phase} width={168} height={234} />
+        <div className="absolute" style={{ top: '50%', left: '50%', marginTop: -140, marginLeft: -100, zIndex: 10 }}>
+          <CentralCard cropControls={cropControls} scanActive={scanActive} phase={phase} width={200} height={280} />
         </div>
 
         {/* Status label */}
