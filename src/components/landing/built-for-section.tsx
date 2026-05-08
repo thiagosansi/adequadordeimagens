@@ -181,7 +181,7 @@ function EcommerceMockup() {
       <div className="flex-shrink-0">
         <div className="text-[9px] font-bold uppercase tracking-wider mb-2" style={{ color: '#94A3B8' }}>Original</div>
         <div className="relative overflow-hidden rounded-xl"
-          style={{ width: 110, height: 110, border: '1px solid #E2E8F0' }}>
+          style={{ width: 140, height: 140, border: '1px solid #E2E8F0' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={CONCERT_IMG} alt="Criativo original" className="w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -213,8 +213,8 @@ function EcommerceMockup() {
             >
               <div className="relative overflow-hidden rounded-lg"
                 style={{
-                  width: p.ratio === '9:16' ? 38 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 72 : 52,
-                  height: p.ratio === '9:16' ? 68 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 38 : 52,
+                  width: p.ratio === '9:16' ? 50 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 92 : 68,
+                  height: p.ratio === '9:16' ? 88 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 48 : 68,
                   border: `1px solid ${p.color}30`,
                 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
