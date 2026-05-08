@@ -166,13 +166,15 @@ function MediaBuyerMockup() {
   )
 }
 
+const CONCERT_IMG = '/built-for-concert.png'
+
 function EcommerceMockup() {
   const platforms = [
-    { name: 'Meta Feed', ratio: '1:1', color: '#1877f2', seed: 'ec-m1' },
-    { name: 'Stories', ratio: '9:16', color: '#1877f2', seed: 'ec-m2' },
-    { name: 'TikTok', ratio: '9:16', color: '#ff0050', seed: 'ec-m3' },
-    { name: 'Google', ratio: '16:9', color: '#4285f4', seed: 'ec-m4' },
-    { name: 'LinkedIn', ratio: '1.91:1', color: '#0a66c2', seed: 'ec-m5' },
+    { name: 'Meta Feed', ratio: '1:1',    color: '#1877f2', objPos: 'center 35%' },
+    { name: 'Stories',   ratio: '9:16',   color: '#1877f2', objPos: 'center 25%' },
+    { name: 'TikTok',   ratio: '9:16',   color: '#ff0050', objPos: 'center 20%' },
+    { name: 'Google',   ratio: '16:9',   color: '#4285f4', objPos: 'center 30%' },
+    { name: 'LinkedIn', ratio: '1.91:1', color: '#0a66c2', objPos: 'center 30%' },
   ]
   return (
     <div className="flex h-full gap-4 items-center">
@@ -181,9 +183,9 @@ function EcommerceMockup() {
         <div className="relative overflow-hidden rounded-xl"
           style={{ width: 110, height: 110, border: '1px solid #E2E8F0' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={IMG(110, 110, 'ecom-product')} alt="" className="w-full h-full object-cover" />
+          <img src={CONCERT_IMG} alt="Criativo original" className="w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          <div className="absolute bottom-1.5 left-0 right-0 text-center text-[8px] font-bold text-white">Produto</div>
+          <div className="absolute bottom-1.5 left-0 right-0 text-center text-[8px] font-bold text-white">Criativo</div>
         </div>
       </div>
 
@@ -216,7 +218,7 @@ function EcommerceMockup() {
                   border: `1px solid ${p.color}30`,
                 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={IMG(80, 80, p.seed)} alt="" className="w-full h-full object-cover" />
+                <img src={CONCERT_IMG} alt={p.name} className="w-full h-full object-cover" style={{ objectPosition: p.objPos }} />
                 <div className="absolute top-0.5 left-0 right-0 flex justify-center">
                   <div className="rounded-b px-1 text-[6px] font-bold text-white"
                     style={{ backgroundColor: p.color }}>{p.ratio}</div>
