@@ -31,6 +31,7 @@ import { PreviewPanel } from '@/components/preview-panel'
 import { DownloadPanel } from '@/components/download-panel'
 import { TextOverlayChecker } from '@/components/text-overlay-checker'
 import { QualityScoreCard, FormatBenchmarkCard } from '@/components/quality-score-badge'
+import { CreativeIntelligencePanel } from '@/components/creative-intelligence-panel'
 import { BatchExportPanel } from '@/components/batch-export-panel'
 import { AppModeSwitcher } from '@/components/app-mode-switcher'
 import type { AppMode } from '@/components/app-mode-switcher'
@@ -336,6 +337,10 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
                   onSuggestInteractiveCrop={() => setAdjustmentMode('interactive-crop')}
                 />
                 <FormatBenchmarkCard format={selectedFormat} />
+                <CreativeIntelligencePanel
+                  imageAnalysis={imageAnalysis}
+                  textCoveragePercent={textCoveragePercent}
+                />
               </div>
             </div>
 
@@ -432,6 +437,10 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
                 onSuggestInteractiveCrop={() => setAdjustmentMode('interactive-crop')}
               />
               <FormatBenchmarkCard format={selectedFormat} />
+              <CreativeIntelligencePanel
+                imageAnalysis={imageAnalysis}
+                textCoveragePercent={textCoveragePercent}
+              />
             </div>
           </div>
         )}
