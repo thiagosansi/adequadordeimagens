@@ -213,8 +213,8 @@ function EcommerceMockup() {
             >
               <div className="relative overflow-hidden rounded-lg"
                 style={{
-                  width: p.ratio === '9:16' ? 48 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 112 : 78,
-                  height: p.ratio === '9:16' ? 85 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 63 : 78,
+                  width: p.ratio === '9:16' ? 62 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 136 : 96,
+                  height: p.ratio === '9:16' ? 110 : p.ratio === '16:9' || p.ratio === '1.91:1' ? 76 : 96,
                   border: `1px solid ${p.color}30`,
                 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -370,7 +370,7 @@ export function BuiltForSection() {
   return (
     <section
       id="solucoes"
-      className="relative py-16 sm:py-24 overflow-x-hidden"
+      className="relative py-10 sm:py-14 overflow-x-hidden"
       style={{ backgroundColor: '#F1F5F9' }}
     >
       <div className="mx-auto max-w-6xl px-6">
@@ -484,12 +484,12 @@ export function BuiltForSection() {
             </div>
 
             {/* Right: mockup — scrollable on mobile */}
-            <div className="relative p-4 sm:p-6 overflow-x-auto min-w-0" style={{ minHeight: 280, background: '#FAFBFC' }}>
+            <div className="relative p-4 sm:p-6 overflow-x-auto min-w-0" style={{ background: '#FAFBFC' }}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={tab.id}
                   className="h-full"
-                  style={{ minHeight: 260, minWidth: 500 }}
+                  style={{ minWidth: 500 }}
                   initial={{ opacity: 0, x: 14 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -14 }}
