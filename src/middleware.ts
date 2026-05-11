@@ -41,13 +41,31 @@ export async function middleware(request: NextRequest) {
     }
 
     const { pathname } = request.nextUrl
+    const adminEmail = process.env.ADMIN_EMAIL
+    const isAdmin = !!user && !!adminEmail && user.email === adminEmail
 
+    // /app routes — any authenticated user
     if (!user && pathname.startsWith('/app')) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
+    // /admin routes (except /admin/login) — admin only
+    if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+      if (!user) {
+        return NextResponse.redirect(new URL('/admin/login', request.url))
+      }
+      if (!isAdmin) {
+        return NextResponse.redirect(new URL('/app', request.url))
+      }
+    }
+
+    // Redirect away from login pages when already authenticated
     if (user && pathname === '/login') {
       return NextResponse.redirect(new URL('/app', request.url))
+    }
+    if (user && pathname === '/admin/login') {
+      const dest = isAdmin ? '/admin' : '/app'
+      return NextResponse.redirect(new URL(dest, request.url))
     }
 
     return supabaseResponse
@@ -63,5 +81,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/login'],
+  matcher: ['/app/:path*', '/login', '/admin/:path*', '/admin'],
 }
