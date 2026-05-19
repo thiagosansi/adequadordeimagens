@@ -9,6 +9,7 @@ import { estimateDataUrlSizeKB } from '@/lib/canvas-renderer'
 import { uploadExport } from '@/lib/storage'
 import { saveProject } from '@/lib/projects'
 import { createClient } from '@/lib/supabase/client'
+import { trackEvent } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 
 type Metadata = {
@@ -85,6 +86,14 @@ export function DownloadPanel({ processedDataUrl, format, originalFileName, requ
       link.download = fileName
       link.click()
       URL.revokeObjectURL(url)
+
+      void trackEvent('download_image', {
+        format_id: format.id,
+        format_label: format.label,
+        platform: format.platform,
+        width: format.width,
+        height: format.height,
+      })
 
       // Save to history (fire-and-forget — não bloqueia o download)
       void (async () => {

@@ -7,6 +7,7 @@ import type { CarouselCard } from '@/shared/types/carousel'
 import type { AdjustmentMode, BackgroundConfig, MetaFormat } from '@/shared/types/image'
 import { processAllCards, processCard, buildCarouselFileName } from '@/lib/carousel-processor'
 import { processImageWithAI } from '@/lib/ai-process-client'
+import { trackEvent } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -127,6 +128,14 @@ export function CarouselDownloadPanel({
       link.download = 'carrossel_' + format.width + 'x' + format.height + '.zip'
       link.click()
       URL.revokeObjectURL(url)
+
+      void trackEvent('download_carousel', {
+        card_count: cards.length,
+        format_id: format.id,
+        format_label: format.label,
+        width: format.width,
+        height: format.height,
+      })
     } finally {
       setIsProcessing(false)
       setProgress(null)

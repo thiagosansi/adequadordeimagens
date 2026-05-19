@@ -11,6 +11,7 @@ import type { AIMode } from '@/lib/ai-process-client'
 import type { AdjustmentMode, BackgroundConfig, MetaFormat, PixelCrop } from '@/shared/types/image'
 import type { Platform } from '@/shared/types/platform'
 import { InteractiveCropper } from '@/components/interactive-cropper'
+import { trackEvent } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -162,6 +163,12 @@ export function BatchExportPanel({
       link.download = baseName + '_meta-ads-ai.zip'
       link.click()
       URL.revokeObjectURL(url)
+
+      void trackEvent('download_batch', {
+        format_count: selectedFormats.length,
+        platform,
+        ai: true,
+      })
     } catch (err) {
       setAIError(err instanceof Error ? err.message : 'Erro ao exportar com IA')
     } finally {
@@ -206,6 +213,12 @@ export function BatchExportPanel({
       link.download = baseName + '_meta-ads.zip'
       link.click()
       URL.revokeObjectURL(url)
+
+      void trackEvent('download_batch', {
+        format_count: selectedFormats.length,
+        platform,
+        ai: false,
+      })
     } catch (err) {
       setExportError(err instanceof Error ? err.message : 'Erro ao exportar formatos')
     } finally {
@@ -253,6 +266,10 @@ export function BatchExportPanel({
       link.download = `${baseName}_todas-plataformas.zip`
       link.click()
       URL.revokeObjectURL(url)
+
+      void trackEvent('download_all_platforms', {
+        format_count: ALL_IMAGE_FORMATS.length,
+      })
     } finally {
       setIsAllPlatformsExporting(false)
       setProgress(null)

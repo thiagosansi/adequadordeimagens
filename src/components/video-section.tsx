@@ -20,6 +20,7 @@ import { VideoUploader } from './video-uploader'
 import { VideoPreview } from './video-preview'
 import { VideoFrameCropper } from './video-frame-cropper'
 import { RequirementsChecklist } from './requirements-checklist'
+import { trackEvent } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 import type { PixelCrop } from '@/shared/types/image'
 
@@ -154,6 +155,14 @@ export function VideoSection() {
     link.download = fileName
     link.click()
     URL.revokeObjectURL(url)
+
+    void trackEvent('download_video', {
+      format_id: selectedFormat.id,
+      format_label: selectedFormat.label,
+      platform: selectedFormat.platform,
+      width: selectedFormat.width,
+      height: selectedFormat.height,
+    })
   }
 
   function handleReset() {
