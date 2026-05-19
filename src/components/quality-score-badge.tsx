@@ -100,7 +100,7 @@ export function FormatBenchmarkCard({ format }: BenchmarkProps) {
           Benchmark do formato
         </p>
         <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-semibold', cpcMeta.bg, cpcMeta.color)}>
-          {cpcMeta.label} · {benchmark.avgCpm}
+          {cpcMeta.label} · CPM {benchmark.avgCpm}
         </span>
       </div>
 
