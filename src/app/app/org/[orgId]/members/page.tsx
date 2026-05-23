@@ -45,8 +45,22 @@ export default function MembersPage() {
     try {
       const res = await fetch(`/api/org/${orgId}/members`)
       const data = await res.json() as { members?: Member[]; callerRole?: string | null }
+      const role = data.callerRole ?? null
       setMembers(data.members ?? [])
-      setCallerRole(data.callerRole ?? null)
+      setCallerRole(role)
+
+      // If caller has no membership row, attempt auto-recovery (org owner whose
+      // membership insert failed silently during onboarding)
+      if (!role) {
+        const recovery = await fetch(`/api/org/${orgId}/recover-owner`, { method: 'POST' })
+        if (recovery.ok) {
+          // Re-fetch the member list now that the row exists
+          const res2 = await fetch(`/api/org/${orgId}/members`)
+          const data2 = await res2.json() as { members?: Member[]; callerRole?: string | null }
+          setMembers(data2.members ?? [])
+          setCallerRole(data2.callerRole ?? null)
+        }
+      }
     } finally {
       setLoadingMembers(false)
     }
