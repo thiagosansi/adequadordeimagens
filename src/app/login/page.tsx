@@ -8,6 +8,9 @@ type View = 'login' | 'signup' | 'forgot'
 
 export default function LoginPage() {
   const [view, setView] = useState<View>('login')
+  const nextUrl = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('next') ?? '/app'
+    : '/app'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -23,7 +26,7 @@ export default function LoginPage() {
     try {
       if (view === 'login') {
         await login(email, password)
-        window.location.href = '/app'
+        window.location.href = nextUrl
       } else if (view === 'signup') {
         const session = await signUp(email, password)
         if (session) {

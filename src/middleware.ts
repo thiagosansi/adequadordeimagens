@@ -78,8 +78,8 @@ export async function middleware(request: NextRequest) {
     }
 
     // ── Standard routes ────────────────────────────────────────────────────
-    if (!user && pathname.startsWith('/app')) {
-      return NextResponse.redirect(new URL('/login', request.url))
+    if (!user && (pathname.startsWith('/app') || pathname.startsWith('/invite'))) {
+      return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(pathname)}`, request.url))
     }
 
     if (user && pathname === '/login') {
@@ -121,6 +121,7 @@ export const config = {
       has: [{ type: 'host', value: 'admin\\.adframe\\.com\\.br' }],
     },
     '/app/:path*',
+    '/invite/:path*',
     '/admin/:path*',
     '/admin',
     '/login',
