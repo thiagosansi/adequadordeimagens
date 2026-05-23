@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { X, Zap } from 'lucide-react'
 
 interface UpgradeModalProps {
-  reason: 'ai_request' | 'export'
+  reason: 'ai_request' | 'export' | 'feature_gate'
   onClose: () => void
 }
 
@@ -16,6 +16,10 @@ const COPY = {
   export: {
     title: 'Limite de exportações atingido',
     description: 'Você usou todas as exportações do seu plano neste mês.',
+  },
+  feature_gate: {
+    title: 'Recurso exclusivo do plano Pro',
+    description: 'Os modos Lote, Vídeo e Carrossel estão disponíveis a partir do plano Pro.',
   },
 } as const
 

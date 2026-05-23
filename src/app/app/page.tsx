@@ -72,8 +72,9 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
   const [isAIProcessing, setIsAIProcessing] = useState(false)
   const [aiError, setAIError] = useState<string | null>(null)
   const [lastAIMode, setLastAIMode] = useState<AIMode | null>(null)
-  const [upgradeReason, setUpgradeReason] = useState<'ai_request' | 'export' | null>(null)
+  const [upgradeReason, setUpgradeReason] = useState<'ai_request' | 'export' | 'feature_gate' | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isPaidPlan, setIsPaidPlan] = useState(true) // assume paid until proven otherwise
 
   useEffect(() => {
     fetch('/api/workspaces')
@@ -87,6 +88,13 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
         const active = (data.workspaces ?? []).find((w) => w.id === activeId)
         if (active && ['owner', 'admin'].includes(active.role)) setIsAdmin(true)
       })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/usage-status')
+      .then((r) => r.json())
+      .then((d: { planId: string }) => setIsPaidPlan(d.planId !== 'free'))
       .catch(() => {})
   }, [])
 
@@ -263,7 +271,13 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
             <div className="flex items-center gap-3">
               {/* Mode switcher inline only on sm+ */}
               <div className="hidden sm:block">
-                <AppModeSwitcher mode={appMode} onChange={setAppMode} />
+                <AppModeSwitcher mode={appMode} onChange={(m) => {
+                    if (!isPaidPlan && (m === 'batch' || m === 'video' || m === 'carousel')) {
+                      setUpgradeReason('feature_gate')
+                    } else {
+                      setAppMode(m)
+                    }
+                  }} />
               </div>
               {appMode === 'single' && originalFile && (
                 <button
@@ -280,7 +294,13 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
           </div>
           {/* Row 2: mode switcher full-width on mobile only */}
           <div className="pb-3 sm:hidden">
-            <AppModeSwitcher mode={appMode} onChange={setAppMode} />
+            <AppModeSwitcher mode={appMode} onChange={(m) => {
+                    if (!isPaidPlan && (m === 'batch' || m === 'video' || m === 'carousel')) {
+                      setUpgradeReason('feature_gate')
+                    } else {
+                      setAppMode(m)
+                    }
+                  }} />
           </div>
         </div>
       </header>

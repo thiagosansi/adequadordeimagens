@@ -6,9 +6,11 @@ import { CreditCard, Zap } from 'lucide-react'
 interface BillingActionsProps {
   isPaid: boolean
   orgId?: string
+  /** When set, renders only the specified plan's upgrade button (used in comparison table) */
+  variant?: 'pro' | 'team'
 }
 
-export function BillingActions({ isPaid, orgId }: BillingActionsProps) {
+export function BillingActions({ isPaid, orgId, variant }: BillingActionsProps) {
   const [loading, setLoading] = useState<'checkout' | 'portal' | null>(null)
   const [error, setError] = useState('')
 
@@ -46,6 +48,26 @@ export function BillingActions({ isPaid, orgId }: BillingActionsProps) {
       setError(err instanceof Error ? err.message : 'Algo deu errado')
       setLoading(null)
     }
+  }
+
+  // Single-variant mode for comparison table cells
+  if (variant) {
+    return (
+      <div>
+        {error && <p className="mb-1 text-xs text-red-600">{error}</p>}
+        <button
+          onClick={() => handleUpgrade(variant)}
+          disabled={!!loading}
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
+            variant === 'pro'
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-purple-600 text-white hover:bg-purple-700'
+          }`}
+        >
+          {loading === 'checkout' ? '...' : 'Assinar'}
+        </button>
+      </div>
+    )
   }
 
   return (

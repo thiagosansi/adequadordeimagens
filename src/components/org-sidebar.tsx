@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, CheckSquare, Users, Palette, CreditCard, FolderOpen, SendHorizonal } from 'lucide-react'
+import { LayoutGrid, CheckSquare, Users, Palette, CreditCard, FolderOpen, SendHorizonal, Zap } from 'lucide-react'
 
 interface Workspace {
   id: string
@@ -13,6 +13,12 @@ interface Workspace {
 
 interface Approval {
   status: string
+}
+
+interface UsageStatus {
+  planId: string
+  exportsUsed: number
+  exportsLimit: number
 }
 
 function getActiveOrgId(): string | null {
@@ -28,6 +34,7 @@ export function OrgSidebar({ userDisplay, userEmail }: { userDisplay: string; us
   const [role, setRole] = useState<string | null>(null)
   const [pendingCount, setPendingCount] = useState(0)
   const [ready, setReady] = useState(false)
+  const [usage, setUsage] = useState<UsageStatus | null>(null)
 
   useEffect(() => {
     const activeId = getActiveOrgId()
@@ -44,6 +51,13 @@ export function OrgSidebar({ userDisplay, userEmail }: { userDisplay: string; us
         setReady(true)
       })
       .catch(() => setReady(true))
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/usage-status')
+      .then((r) => r.json())
+      .then((d: UsageStatus) => setUsage(d))
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -121,6 +135,41 @@ export function OrgSidebar({ userDisplay, userEmail }: { userDisplay: string; us
           )
         })}
       </nav>
+
+      {/* Usage bar */}
+      {usage && usage.exportsLimit > 0 && (
+        <div className="border-t border-gray-100 px-4 py-3">
+          {(() => {
+            const pct = Math.min(100, Math.round((usage.exportsUsed / usage.exportsLimit) * 100))
+            const isAmber = pct >= 80 && pct < 100
+            const isFull = pct >= 100
+            return (
+              <>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <p className="text-xs text-gray-500">
+                    <span className={`font-semibold ${isFull ? 'text-red-600' : isAmber ? 'text-amber-600' : 'text-gray-700'}`}>
+                      {usage.exportsUsed}/{usage.exportsLimit}
+                    </span>
+                    {' '}exports este mês
+                  </p>
+                  {usage.planId === 'free' && (
+                    <Link href="/app/billing" className="flex items-center gap-0.5 text-[10px] font-semibold text-blue-600 hover:text-blue-800">
+                      <Zap className="h-3 w-3" />
+                      Upgrade
+                    </Link>
+                  )}
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                  <div
+                    className={`h-full rounded-full transition-all ${isFull ? 'bg-red-500' : isAmber ? 'bg-amber-500' : 'bg-blue-500'}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </>
+            )
+          })()}
+        </div>
+      )}
 
       {/* User info */}
       <div className="border-t border-gray-100 px-4 py-3">
