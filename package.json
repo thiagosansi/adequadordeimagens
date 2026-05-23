@@ -30,6 +30,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-image-crop": "^11.0.7",
+    "stripe": "^22.1.1",
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
