@@ -21,7 +21,7 @@ function getActiveOrgId(): string | null {
   return match ? decodeURIComponent(match[1] ?? '') || null : null
 }
 
-export function OrgSidebar() {
+export function OrgSidebar({ userDisplay, userEmail }: { userDisplay: string; userEmail: string }) {
   const pathname = usePathname()
   const [orgId, setOrgId] = useState<string | null>(null)
   const [orgName, setOrgName] = useState('')
@@ -114,9 +114,13 @@ export function OrgSidebar() {
         })}
       </nav>
 
-      {/* Role badge */}
+      {/* User info */}
       <div className="border-t border-gray-100 px-4 py-3">
-        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500">
+        <p className="truncate text-sm font-medium text-gray-800">{userDisplay}</p>
+        {userDisplay !== userEmail && (
+          <p className="truncate text-xs text-gray-400">{userEmail}</p>
+        )}
+        <span className="mt-1.5 inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500">
           {role === 'owner' ? 'Dono' : 'Admin'}
         </span>
       </div>
