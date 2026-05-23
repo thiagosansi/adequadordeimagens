@@ -7,8 +7,8 @@ function makeFile(name: string, type: string, sizeBytes: number): File {
   return new File([blob], name, { type })
 }
 
-const squareFormat = findFormatById('feed-square')!
-const storiesFormat = findFormatById('stories')!
+const squareFormat = findFormatById('meta-feed-square')!
+const storiesFormat = findFormatById('meta-stories')!
 
 describe('validateRequirements', () => {
   it('returns a requirement for each rule', () => {
@@ -96,7 +96,6 @@ describe('validateRequirements', () => {
   describe('aspect-ratio', () => {
     it('passes when image matches format ratio exactly', () => {
       const file = makeFile('img.jpg', 'image/jpeg', 1024)
-      // Feed square 1:1
       const reqs = validateRequirements(file, 1080, 1080, squareFormat)
       expect(reqs.find((r) => r.id === 'aspect-ratio')?.status).toBe('pass')
     })

@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/client'
 import type { MetaFormat } from '@/shared/types/image'
 
+export type ProjectStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected'
+
 export type Project = {
   id: string
   user_id: string
@@ -11,6 +13,7 @@ export type Project = {
   height: number
   storage_path: string
   organization_id: string | null
+  status: ProjectStatus
   created_at: string
   creator_name?: string | null  // populated when listing org projects
 }

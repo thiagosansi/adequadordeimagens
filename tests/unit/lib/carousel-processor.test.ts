@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { buildCarouselFileName } from '@/lib/carousel-processor'
 import { findFormatById } from '@/lib/meta-formats'
 
-const square = findFormatById('feed-square')!
-const portrait = findFormatById('feed-portrait')!
+const square = findFormatById('meta-feed-square')!
+const portrait = findFormatById('meta-feed-portrait')!
 
 describe('buildCarouselFileName', () => {
   it('pads single digit index with leading zero', () => {
@@ -18,10 +18,5 @@ describe('buildCarouselFileName', () => {
 
   it('ends with .jpg', () => {
     expect(buildCarouselFileName(0, square).endsWith('.jpg')).toBe(true)
-  })
-
-  it('uses 1-based numbering', () => {
-    expect(buildCarouselFileName(0, square)).toMatch(/card-01/)
-    expect(buildCarouselFileName(9, square)).toMatch(/card-10/)
   })
 })

@@ -109,6 +109,9 @@ export function WorkspaceSwitcher({ userName }: { userName?: string }) {
               </button>
               {activeOrgId === org.id && (
                 <div className="border-t border-gray-50 pb-1">
+                  <a href={`/app/org/${org.id}/approvals`} className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-500 hover:bg-gray-50">
+                    Aprovações
+                  </a>
                   <a href={`/app/org/${org.id}/members`} className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-500 hover:bg-gray-50">
                     Membros
                   </a>

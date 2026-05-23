@@ -2,9 +2,15 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Download, Trash2, Loader2, FolderOpen, User, Building2 } from 'lucide-react'
+import { ArrowLeft, Download, Trash2, Loader2, FolderOpen, User, Building2, SendHorizonal, CheckCircle2, XCircle, Clock } from 'lucide-react'
 import { listProjects, deleteProject, type Project } from '@/lib/projects'
 import { getExportUrl } from '@/lib/storage'
+
+const STATUS_BADGE: Record<string, { label: string; className: string; Icon: React.ElementType }> = {
+  pending_approval: { label: 'Aguardando',  className: 'bg-amber-100 text-amber-700',  Icon: Clock         },
+  approved:         { label: 'Aprovado',    className: 'bg-green-100 text-green-700',  Icon: CheckCircle2  },
+  rejected:         { label: 'Rejeitado',   className: 'bg-red-100 text-red-700',      Icon: XCircle       },
+}
 
 interface Workspace {
   id: string
@@ -27,6 +33,7 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [submittingId, setSubmittingId] = useState<string | null>(null)
 
   // Resolve active workspace on mount
   useEffect(() => {
@@ -70,6 +77,30 @@ export default function ProjectsPage() {
       window.open(url, '_blank')
     } catch {
       alert('Não foi possível abrir a imagem.')
+    }
+  }
+
+  async function handleRequestApproval(project: Project) {
+    if (!activeOrgId) return
+    setSubmittingId(project.id)
+    try {
+      const res = await fetch(`/api/org/${activeOrgId}/approvals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id }),
+      })
+      if (!res.ok) {
+        const body = await res.json() as { error?: string }
+        alert(body.error ?? 'Não foi possível solicitar aprovação.')
+        return
+      }
+      setProjects(prev =>
+        prev.map(p => p.id === project.id ? { ...p, status: 'pending_approval' } : p),
+      )
+    } catch {
+      alert('Não foi possível solicitar aprovação.')
+    } finally {
+      setSubmittingId(null)
     }
   }
 
@@ -185,11 +216,24 @@ export default function ProjectsPage() {
 
                 {/* Creator — shown for org projects */}
                 {tab === 'org' && project.creator_name && (
-                  <p className="mb-3 flex items-center gap-1 text-xs text-gray-400">
+                  <p className="mb-2 flex items-center gap-1 text-xs text-gray-400">
                     <User className="h-3 w-3" />
                     {project.creator_name}
                   </p>
                 )}
+
+                {/* Status badge — shown for org projects */}
+                {tab === 'org' && (() => {
+                  const badge = STATUS_BADGE[project.status]
+                  if (!badge) return null
+                  const BadgeIcon = badge.Icon
+                  return (
+                    <span className={`mb-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${badge.className}`}>
+                      <BadgeIcon className="h-3 w-3" />
+                      {badge.label}
+                    </span>
+                  )
+                })()}
 
                 <div className="mt-auto flex items-center justify-between pt-3">
                   <span className="text-xs text-gray-400">
@@ -198,6 +242,19 @@ export default function ProjectsPage() {
                     })}
                   </span>
                   <div className="flex items-center gap-2">
+                    {tab === 'org' && project.status === 'draft' && (
+                      <button
+                        onClick={() => handleRequestApproval(project)}
+                        disabled={submittingId === project.id}
+                        className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100 disabled:opacity-50"
+                      >
+                        {submittingId === project.id
+                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          : <SendHorizonal className="h-3.5 w-3.5" />
+                        }
+                        Solicitar
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDownload(project)}
                       className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"

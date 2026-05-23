@@ -14,6 +14,8 @@ type EventRow = {
 
 type DownloadMetric = { total: number; last30d: number; last7d: number }
 
+type TopOrg = { id: string; name: string; memberCount: number }
+
 type Metrics = {
   downloads: {
     image: DownloadMetric
@@ -33,6 +35,20 @@ type Metrics = {
   topPlatforms: [string, number][]
   topFormats: [string, { label: string; count: number }][]
   recentEvents: EventRow[]
+  orgs: {
+    total: number
+    new30d: number
+    new7d: number
+    totalMembers: number
+    topOrgs: TopOrg[]
+  }
+  subs: {
+    proActive: number
+    teamActive: number
+    totalTeamSeats: number
+    mrrCents: number
+    pendingApprovals: number
+  }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -94,6 +110,10 @@ async function fetchMetrics(): Promise<Metrics> {
     { data: recentRaw },
     allTimeCounts,
     { data: totalAuthUsers },
+    { data: orgsRaw },
+    { data: membersRaw },
+    { data: subsRaw },
+    { count: pendingApprovals },
   ] = await Promise.all([
     service
       .from('analytics_events')
@@ -118,6 +138,20 @@ async function fetchMetrics(): Promise<Metrics> {
 
     // Total real de usuários cadastrados via função SQL (auth schema não é exposto pelo PostgREST)
     service.rpc('count_auth_users'),
+
+    service.from('organizations').select('id, name, created_at'),
+
+    service.from('organization_members').select('organization_id, joined_at'),
+
+    service
+      .from('subscriptions')
+      .select('plan_id, status, entity_type, seat_count')
+      .in('status', ['active', 'trialing']),
+
+    service
+      .from('approval_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending'),
   ])
 
   const events30d = (allEvents30dRaw ?? []) as EventRow[]
@@ -186,6 +220,31 @@ async function fetchMetrics(): Promise<Metrics> {
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 8) as [string, { label: string; count: number }][]
 
+  // ── Org metrics ───────────────────────────────────────────────────────────
+  const orgs = orgsRaw ?? []
+  const members = membersRaw ?? []
+
+  const orgNew30d = orgs.filter(o => new Date(o.created_at) >= thirtyDaysAgo).length
+  const orgNew7d  = orgs.filter(o => new Date(o.created_at) >= sevenDaysAgo).length
+  const activeMembers = members.filter(m => m.joined_at != null)
+  const totalMembers = activeMembers.length
+
+  const memberCountByOrg = new Map<string, number>()
+  for (const m of activeMembers) {
+    memberCountByOrg.set(m.organization_id, (memberCountByOrg.get(m.organization_id) ?? 0) + 1)
+  }
+  const topOrgs: TopOrg[] = orgs
+    .map(o => ({ id: o.id, name: o.name, memberCount: memberCountByOrg.get(o.id) ?? 0 }))
+    .sort((a, b) => b.memberCount - a.memberCount)
+    .slice(0, 5)
+
+  // ── Subscription metrics ───────────────────────────────────────────────────
+  const subs = subsRaw ?? []
+  const proSubs  = subs.filter(s => s.plan_id === 'pro'  && s.entity_type === 'user')
+  const teamSubs = subs.filter(s => s.plan_id === 'team' && s.entity_type === 'organization')
+  const totalTeamSeats = teamSubs.reduce((sum, s) => sum + (s.seat_count ?? 0), 0)
+  const mrrCents = proSubs.length * 2990 + totalTeamSeats * 4990
+
   return {
     downloads: {
       image: metric('download_image'),
@@ -205,6 +264,20 @@ async function fetchMetrics(): Promise<Metrics> {
     topPlatforms,
     topFormats,
     recentEvents,
+    orgs: {
+      total: orgs.length,
+      new30d: orgNew30d,
+      new7d: orgNew7d,
+      totalMembers,
+      topOrgs,
+    },
+    subs: {
+      proActive: proSubs.length,
+      teamActive: teamSubs.length,
+      totalTeamSeats,
+      mrrCents,
+      pendingApprovals: pendingApprovals ?? 0,
+    },
   }
 }
 
@@ -349,7 +422,7 @@ export default async function AdminPage() {
   }
 
   const metrics = await fetchMetrics()
-  const { downloads, users, eventsPerDay, topPlatforms, topFormats, recentEvents } = metrics
+  const { downloads, users, eventsPerDay, topPlatforms, topFormats, recentEvents, orgs: orgMetrics, subs: subsMetrics } = metrics
 
   const totalDownloads =
     downloads.image.total +
@@ -680,6 +753,115 @@ export default async function AdminPage() {
                 )}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        {/* ── Organizações ─────────────────────────────────────────────────── */}
+        <section>
+          <h2
+            className="mb-3 text-xs font-semibold uppercase tracking-widest"
+            style={{ color: '#64748B' }}
+          >
+            Organizações
+          </h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <SimpleCard
+              title="Total de orgs"
+              value={orgMetrics.total}
+            />
+            <SimpleCard
+              title="Novas (30d)"
+              value={orgMetrics.new30d}
+              sub={`${orgMetrics.new7d} nos últimos 7 dias`}
+            />
+            <SimpleCard
+              title="Membros totais"
+              value={orgMetrics.totalMembers}
+              sub="com convite aceito"
+            />
+            <SimpleCard
+              title="Aprovações pendentes"
+              value={subsMetrics.pendingApprovals}
+              sub="aguardando revisão"
+            />
+          </div>
+
+          {orgMetrics.topOrgs.length > 0 && (
+            <div
+              className="mt-4 overflow-hidden rounded-xl"
+              style={{ border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF' }}
+            >
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: '#F8FAFC' }}>
+                    <th className="px-4 py-3 font-semibold" style={{ color: '#475569' }}>Organização</th>
+                    <th className="px-4 py-3 text-right font-semibold" style={{ color: '#475569' }}>Membros</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orgMetrics.topOrgs.map((org) => (
+                    <tr
+                      key={org.id}
+                      className="transition-colors hover:bg-slate-50"
+                      style={{ borderTop: '1px solid #F1F5F9' }}
+                    >
+                      <td className="px-4 py-2.5 font-medium" style={{ color: '#0F172A' }}>
+                        {org.name}
+                      </td>
+                      <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: '#64748B' }}>
+                        {fmt(org.memberCount)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* ── Planos & Receita ─────────────────────────────────────────────── */}
+        <section>
+          <h2
+            className="mb-3 text-xs font-semibold uppercase tracking-widest"
+            style={{ color: '#64748B' }}
+          >
+            Planos &amp; Receita
+          </h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div
+              className="rounded-xl p-4"
+              style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0' }}
+            >
+              <p className="text-xs font-medium uppercase tracking-widest" style={{ color: '#64748B' }}>
+                Free
+              </p>
+              <p className="mt-1 text-3xl font-bold tabular-nums" style={{ color: '#0F172A' }}>
+                {fmt(Math.max(0, users.totalAuthUsers - subsMetrics.proActive))}
+              </p>
+              <p className="mt-1 text-xs" style={{ color: '#94A3B8' }}>usuários sem plano pago</p>
+            </div>
+            <SimpleCard
+              title="Pro (individual)"
+              value={subsMetrics.proActive}
+              sub="assinaturas ativas / em trial"
+            />
+            <SimpleCard
+              title="Team (org)"
+              value={subsMetrics.teamActive}
+              sub={`${fmt(subsMetrics.totalTeamSeats)} seats totais`}
+            />
+            <div
+              className="rounded-xl p-4"
+              style={{ backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0' }}
+            >
+              <p className="text-xs font-medium uppercase tracking-widest" style={{ color: '#064E3B' }}>
+                MRR estimado
+              </p>
+              <p className="mt-1 text-3xl font-bold tabular-nums" style={{ color: '#065F46' }}>
+                {(subsMetrics.mrrCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
+              <p className="mt-1 text-xs" style={{ color: '#6EE7B7' }}>Pro × R$29,90 + Team seats × R$49,90</p>
+            </div>
           </div>
         </section>
 
