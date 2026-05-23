@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ orgId: string }> },
 ) {
   try {
@@ -15,17 +15,26 @@ export async function GET(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const url = new URL(request.url)
+    const mineOnly = url.searchParams.get('mine') === 'true'
+
     // No direct FK from approval_requests to user_profiles (both reference auth.users).
     // Fetch base rows + project join first, then enrich with names separately.
-    const { data: rows, error } = await supabase
+    let query = supabase
       .from('approval_requests')
       .select(`
         id, status, comment, created_at, updated_at,
         requester_id, reviewer_id,
-        project:projects(id, name, format_label, width, height)
+        project:projects(id, name, format_label, width, height, storage_path)
       `)
       .eq('organization_id', orgId)
       .order('created_at', { ascending: false })
+
+    if (mineOnly) {
+      query = query.eq('requester_id', user.id)
+    }
+
+    const { data: rows, error } = await query
 
     if (error) {
       console.error('[approvals/GET]', error)
@@ -41,25 +50,53 @@ export async function GET(
     ]
 
     const db = createServiceClient()
-    const { data: profiles } = await db
-      .from('user_profiles')
-      .select('id, full_name')
-      .in('id', userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000'])
+
+    // Fetch names and thumbnail URLs in parallel
+    const storagePaths = allRows
+      .map((r) => (r.project as { storage_path?: string } | null)?.storage_path)
+      .filter((p): p is string => !!p)
+
+    const [profilesResult, signedUrlsResult] = await Promise.all([
+      db
+        .from('user_profiles')
+        .select('id, full_name')
+        .in('id', userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000']),
+      storagePaths.length > 0
+        ? db.storage.from('exports').createSignedUrls(storagePaths, 3600)
+        : Promise.resolve({ data: [] }),
+    ])
 
     const nameMap = Object.fromEntries(
-      (profiles ?? []).map((p) => [p.id, p.full_name ?? null]),
+      (profilesResult.data ?? []).map((p) => [p.id, p.full_name ?? null]),
     )
 
-    const approvals = allRows.map((r) => ({
-      id: r.id,
-      status: r.status,
-      comment: r.comment,
-      created_at: r.created_at,
-      updated_at: r.updated_at,
-      project: r.project,
-      requester: { full_name: nameMap[r.requester_id] ?? null },
-      reviewer: r.reviewer_id ? { full_name: nameMap[r.reviewer_id] ?? null } : null,
-    }))
+    const signedUrlMap: Record<string, string> = {}
+    for (const item of (signedUrlsResult.data ?? [])) {
+      if (item.path && item.signedUrl) {
+        signedUrlMap[item.path] = item.signedUrl
+      }
+    }
+
+    const approvals = allRows.map((r) => {
+      const project = (r.project as unknown) as { id: string; name: string; format_label: string; width: number; height: number; storage_path?: string } | null
+      return {
+        id: r.id,
+        status: r.status,
+        comment: r.comment,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        project: project ? {
+          id: project.id,
+          name: project.name,
+          format_label: project.format_label,
+          width: project.width,
+          height: project.height,
+        } : null,
+        thumbnail_url: project?.storage_path ? (signedUrlMap[project.storage_path] ?? null) : null,
+        requester: { full_name: nameMap[r.requester_id] ?? null },
+        reviewer: r.reviewer_id ? { full_name: nameMap[r.reviewer_id] ?? null } : null,
+      }
+    })
 
     return NextResponse.json({ approvals })
   } catch (err) {

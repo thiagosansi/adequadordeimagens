@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react'
+import { CheckCircle2, XCircle, Clock, Loader2, ImageIcon } from 'lucide-react'
 
 interface Approval {
   id: string
@@ -10,10 +10,13 @@ interface Approval {
   comment: string | null
   created_at: string
   updated_at: string
+  thumbnail_url: string | null
   project: { id: string; name: string; format_label: string; width: number; height: number } | null
   requester: { full_name: string | null } | null
   reviewer: { full_name: string | null } | null
 }
+
+type Filter = 'all' | 'pending' | 'approved' | 'rejected'
 
 const STATUS_CONFIG = {
   pending:   { label: 'Aguardando',  color: 'bg-amber-100 text-amber-700',  icon: Clock          },
@@ -22,6 +25,13 @@ const STATUS_CONFIG = {
   cancelled: { label: 'Cancelado',   color: 'bg-gray-100 text-gray-500',    icon: XCircle        },
 } as const
 
+const FILTERS: { id: Filter; label: string }[] = [
+  { id: 'all',      label: 'Todos'      },
+  { id: 'pending',  label: 'Pendente'   },
+  { id: 'approved', label: 'Aprovado'   },
+  { id: 'rejected', label: 'Rejeitado'  },
+]
+
 export default function ApprovalsPage() {
   const { orgId } = useParams<{ orgId: string }>()
 
@@ -29,6 +39,7 @@ export default function ApprovalsPage() {
   const [loading, setLoading] = useState(true)
   const [reviewing, setReviewing] = useState<string | null>(null)
   const [comments, setComments] = useState<Record<string, string>>({})
+  const [filter, setFilter] = useState<Filter>('all')
 
   const loadApprovals = useCallback(async () => {
     setLoading(true)
@@ -51,7 +62,6 @@ export default function ApprovalsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ decision, comment: comments[approvalId] ?? '' }),
       })
-      // Refresh list
       await loadApprovals()
     } finally {
       setReviewing(null)
@@ -59,7 +69,9 @@ export default function ApprovalsPage() {
   }
 
   const pending   = approvals.filter(a => a.status === 'pending')
-  const reviewed  = approvals.filter(a => a.status !== 'pending' && a.status !== 'cancelled')
+  const filtered  = filter === 'all'
+    ? approvals.filter(a => a.status !== 'cancelled')
+    : approvals.filter(a => a.status === filter)
 
   return (
     <div className="min-h-full bg-gray-50">
@@ -76,53 +88,83 @@ export default function ApprovalsPage() {
           )}
         </div>
 
+        {/* Filter tabs */}
+        <div className="flex gap-1 rounded-xl border border-gray-200 bg-white p-1 w-fit">
+          {FILTERS.map(f => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                filter === f.id
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              {f.label}
+              {f.id === 'pending' && pending.length > 0 && (
+                <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  {pending.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
         {loading && (
           <div className="flex justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-gray-300" />
           </div>
         )}
 
-        {/* Pending */}
-        {!loading && pending.length > 0 && (
-          <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-              Pendentes ({pending.length})
-            </p>
-            {pending.map(approval => (
-              <ApprovalCard
-                key={approval.id}
-                approval={approval}
-                comment={comments[approval.id] ?? ''}
-                onCommentChange={(v) => setComments(prev => ({ ...prev, [approval.id]: v }))}
-                onApprove={() => handleReview(approval.id, 'approved')}
-                onReject={() => handleReview(approval.id, 'rejected')}
-                isReviewing={reviewing === approval.id}
-              />
-            ))}
-          </div>
-        )}
-
-        {!loading && pending.length === 0 && (
+        {!loading && filtered.length === 0 && (
           <div className="rounded-2xl border border-gray-200 bg-white py-12 text-center">
             <CheckCircle2 className="mx-auto mb-3 h-8 w-8 text-green-400" />
-            <p className="text-sm font-medium text-gray-700">Nenhuma aprovação pendente</p>
+            <p className="text-sm font-medium text-gray-700">
+              {filter === 'pending' ? 'Nenhuma aprovação pendente' : 'Nenhum item encontrado'}
+            </p>
             <p className="mt-1 text-xs text-gray-400">Tudo em dia por aqui.</p>
           </div>
         )}
 
-        {/* History */}
-        {!loading && reviewed.length > 0 && (
+        {!loading && filtered.length > 0 && (
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-              Histórico
-            </p>
-            {reviewed.map(approval => (
-              <HistoryCard key={approval.id} approval={approval} />
+            {filtered.map(approval => (
+              approval.status === 'pending' ? (
+                <ApprovalCard
+                  key={approval.id}
+                  approval={approval}
+                  comment={comments[approval.id] ?? ''}
+                  onCommentChange={(v) => setComments(prev => ({ ...prev, [approval.id]: v }))}
+                  onApprove={() => handleReview(approval.id, 'approved')}
+                  onReject={() => handleReview(approval.id, 'rejected')}
+                  isReviewing={reviewing === approval.id}
+                />
+              ) : (
+                <HistoryCard key={approval.id} approval={approval} />
+              )
             ))}
           </div>
         )}
       </div>
     </div>
+  )
+}
+
+function Thumbnail({ url }: { url: string | null }) {
+  if (!url) {
+    return (
+      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-300">
+        <ImageIcon className="h-6 w-6" />
+      </div>
+    )
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={url}
+      alt="Preview"
+      className="h-16 w-16 shrink-0 rounded-lg object-cover border border-gray-100"
+    />
   )
 }
 
@@ -141,23 +183,27 @@ function ApprovalCard({
 
   return (
     <div className="rounded-2xl border border-amber-200 bg-white p-5">
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <div>
-          <p className="font-semibold text-gray-900">{project?.name ?? 'Projeto'}</p>
-          <p className="text-xs text-gray-400">
-            {project?.format_label} · {project?.width}×{project?.height}px
+      <div className="mb-3 flex items-start gap-3">
+        <Thumbnail url={approval.thumbnail_url} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="font-semibold text-gray-900 truncate">{project?.name ?? 'Projeto'}</p>
+              <p className="text-xs text-gray-400">
+                {project?.format_label} · {project?.width}×{project?.height}px
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+              Aguardando
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-gray-500">
+            Solicitado por <span className="font-medium text-gray-700">{requester}</span>
+            {' · '}
+            {new Date(approval.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
-          Aguardando
-        </span>
       </div>
-
-      <p className="mb-4 text-sm text-gray-500">
-        Solicitado por <span className="font-medium text-gray-700">{requester}</span>
-        {' · '}
-        {new Date(approval.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-      </p>
 
       <textarea
         value={comment}
@@ -196,9 +242,16 @@ function HistoryCard({ approval }: { approval: Approval }) {
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-gray-800">{project?.name ?? 'Projeto'}</p>
+      <div className="flex items-center gap-3">
+        <Thumbnail url={approval.thumbnail_url} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <p className="truncate text-sm font-medium text-gray-800">{project?.name ?? 'Projeto'}</p>
+            <span className={`shrink-0 flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${config.color}`}>
+              <Icon className="h-3 w-3" />
+              {config.label}
+            </span>
+          </div>
           <p className="text-xs text-gray-400">
             {approval.requester?.full_name ?? 'Membro'} ·{' '}
             {new Date(approval.updated_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
@@ -207,10 +260,6 @@ function HistoryCard({ approval }: { approval: Approval }) {
             <p className="mt-1 text-xs italic text-gray-400">"{approval.comment}"</p>
           )}
         </div>
-        <span className={`shrink-0 flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${config.color}`}>
-          <Icon className="h-3 w-3" />
-          {config.label}
-        </span>
       </div>
     </div>
   )

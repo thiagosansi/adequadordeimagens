@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, CheckSquare, Users, Palette, CreditCard, FolderOpen } from 'lucide-react'
+import { LayoutGrid, CheckSquare, Users, Palette, CreditCard, FolderOpen, SendHorizonal } from 'lucide-react'
 
 interface Workspace {
   id: string
@@ -68,7 +68,9 @@ export function OrgSidebar({ userDisplay, userEmail }: { userDisplay: string; us
     ...(isAdmin ? [
       { href: `/app/org/${orgId}/approvals`, label: 'Aprovações', icon: CheckSquare, badge: pendingCount },
       { href: `/app/org/${orgId}/members`, label: 'Membros', icon: Users },
-    ] : []),
+    ] : [
+      { href: `/app/org/${orgId}/my-submissions`, label: 'Meus envios', icon: SendHorizonal },
+    ]),
     { href: `/app/org/${orgId}/brand-kit`, label: 'Brand Kit', icon: Palette },
     ...(isAdmin ? [
       { href: '/app/billing', label: 'Cobrança', icon: CreditCard },

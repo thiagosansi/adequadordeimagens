@@ -37,6 +37,7 @@ import { AppModeSwitcher } from '@/components/app-mode-switcher'
 import type { AppMode } from '@/components/app-mode-switcher'
 import { UpgradeModal } from '@/components/upgrade-modal'
 import { WelcomeCard } from '@/components/editor-welcome'
+import { ApprovalNotification } from '@/components/approval-notification'
 import { CarouselSection } from '@/components/carousel/carousel-section'
 import { VideoSection } from '@/components/video-section'
 import { BatchSection } from '@/components/batch-section'
@@ -245,6 +246,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
       {upgradeReason && (
         <UpgradeModal reason={upgradeReason} onClose={() => setUpgradeReason(null)} />
       )}
+      <ApprovalNotification />
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-5xl px-4">
           {/* Row 1: logo + right actions */}
