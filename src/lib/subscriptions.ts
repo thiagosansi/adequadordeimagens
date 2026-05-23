@@ -4,7 +4,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { stripe } from '@/lib/stripe/client'
+import { getStripe } from '@/lib/stripe/client'
 import type { ActiveSubscription, EntityType, PlanFeatures } from '@/lib/stripe/types'
 
 // Returns the single active or trialing subscription for an entity, with plan data.
@@ -68,7 +68,7 @@ export async function getOrCreateStripeCustomer(
 
   if (data?.stripe_customer_id) return data.stripe_customer_id
 
-  const customer = await stripe.customers.create({
+  const customer = await getStripe().customers.create({
     email,
     metadata: { entity_type: entityType, entity_id: entityId },
   })

@@ -16,7 +16,7 @@
 
 import { NextResponse } from 'next/server'
 import type Stripe from 'stripe'
-import { stripe } from '@/lib/stripe/client'
+import { getStripe } from '@/lib/stripe/client'
 import { syncSubscription, cancelSubscriptionByStripeId, updateSubscriptionStatus } from '@/lib/stripe/sync'
 import type { EntityType, PlanId } from '@/lib/stripe/types'
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret)
+    event = getStripe().webhooks.constructEvent(rawBody, sig, webhookSecret)
   } catch (err) {
     console.error('[stripe/webhook] signature verification failed:', err)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
           ? session.subscription
           : session.subscription.id
 
-        const stripeSub = await stripe.subscriptions.retrieve(subId)
+        const stripeSub = await getStripe().subscriptions.retrieve(subId)
         await syncSubscription(stripeSub, entityType, entityId, planId)
         break
       }

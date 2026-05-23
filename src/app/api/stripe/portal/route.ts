@@ -11,7 +11,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { stripe } from '@/lib/stripe/client'
+import { getStripe } from '@/lib/stripe/client'
 
 interface PortalBody {
   orgId?: string
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     }
 
     const origin = new URL(request.url).origin
-    const session = await stripe.billingPortal.sessions.create({
+    const session = await getStripe().billingPortal.sessions.create({
       customer: data.stripe_customer_id,
       return_url: `${origin}/app/billing`,
     })
