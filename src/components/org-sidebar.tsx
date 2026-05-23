@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, CheckSquare, Users, Palette } from 'lucide-react'
+import { LayoutGrid, CheckSquare, Users, Palette, CreditCard, FolderOpen } from 'lucide-react'
 
 interface Workspace {
   id: string
@@ -15,44 +15,58 @@ interface Approval {
   status: string
 }
 
-export function OrgSidebar({ orgId }: { orgId: string }) {
+function getActiveOrgId(): string | null {
+  if (typeof document === 'undefined') return null
+  const match = document.cookie.match(/(?:^|;\s*)adframe-workspace=([^;]*)/)
+  return match ? decodeURIComponent(match[1] ?? '') || null : null
+}
+
+export function OrgSidebar() {
   const pathname = usePathname()
+  const [orgId, setOrgId] = useState<string | null>(null)
   const [orgName, setOrgName] = useState('')
   const [role, setRole] = useState<string | null>(null)
   const [pendingCount, setPendingCount] = useState(0)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    const activeId = getActiveOrgId()
+    setOrgId(activeId)
+
     fetch('/api/workspaces')
       .then((r) => r.json())
       .then((data: { workspaces?: Workspace[] }) => {
-        const org = (data.workspaces ?? []).find((w) => w.id === orgId)
+        const org = (data.workspaces ?? []).find((w) => w.id === activeId)
         if (org) {
           setOrgName(org.name)
           setRole(org.role)
         }
+        setReady(true)
       })
-      .catch(() => {})
-  }, [orgId])
+      .catch(() => setReady(true))
+  }, [])
 
   useEffect(() => {
-    if (!role || !['owner', 'admin'].includes(role)) return
+    if (!orgId || !['owner', 'admin'].includes(role ?? '')) return
 
     fetch(`/api/org/${orgId}/approvals`)
       .then((r) => r.json())
       .then((data: { approvals?: Approval[] }) => {
-        const count = (data.approvals ?? []).filter((a) => a.status === 'pending').length
-        setPendingCount(count)
+        setPendingCount((data.approvals ?? []).filter((a) => a.status === 'pending').length)
       })
       .catch(() => {})
   }, [orgId, role])
 
-  if (!role || !['owner', 'admin'].includes(role)) return null
+  // Don't render until we know the user's context
+  if (!ready || !orgId || !['owner', 'admin'].includes(role ?? '')) return null
 
   const navItems = [
     { href: '/app', label: 'Editor', icon: LayoutGrid },
+    { href: '/app/projects', label: 'Projetos', icon: FolderOpen },
     { href: `/app/org/${orgId}/approvals`, label: 'Aprovações', icon: CheckSquare, badge: pendingCount },
     { href: `/app/org/${orgId}/members`, label: 'Membros', icon: Users },
     { href: `/app/org/${orgId}/brand-kit`, label: 'Brand Kit', icon: Palette },
+    { href: '/app/billing', label: 'Cobrança', icon: CreditCard },
   ]
 
   return (
@@ -69,12 +83,10 @@ export function OrgSidebar({ orgId }: { orgId: string }) {
       </div>
 
       {/* Workspace */}
-      {orgName && (
-        <div className="border-b border-gray-100 px-4 py-3">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Workspace</p>
-          <p className="mt-0.5 truncate text-sm font-semibold text-gray-800">{orgName}</p>
-        </div>
-      )}
+      <div className="border-b border-gray-100 px-4 py-3">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Workspace</p>
+        <p className="mt-0.5 truncate text-sm font-semibold text-gray-800">{orgName}</p>
+      </div>
 
       {/* Nav items */}
       <nav className="flex-1 space-y-0.5 px-2 py-3">
