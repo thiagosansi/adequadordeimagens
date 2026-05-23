@@ -235,39 +235,35 @@ export default async function BillingPage() {
               ))}
             </ul>
           </div>
-        ) : (
-          <div className={`grid gap-4 ${upgradeOrgId ? 'sm:grid-cols-2' : ''}`}>
-            {/* Pro card */}
-            <div className="rounded-2xl border border-blue-200 bg-white p-5">
-              <div className="mb-3 flex items-baseline justify-between">
-                <h2 className="text-sm font-bold text-gray-900">Pro</h2>
-                <span className="text-sm font-semibold text-blue-600">R$29,90/mês</span>
-              </div>
-              <ul className="mb-4 space-y-2 text-sm text-gray-600">
-                {PRO_BENEFITS.map((b) => (
-                  <li key={b} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-blue-400" />{b}
-                  </li>
-                ))}
-              </ul>
+        ) : upgradeOrgId ? (
+          /* User is owner/admin of an org — show Team only */
+          <div className="rounded-2xl border border-purple-200 bg-white p-5">
+            <div className="mb-3 flex items-baseline justify-between">
+              <h2 className="text-sm font-bold text-gray-900">Team</h2>
+              <span className="text-sm font-semibold text-purple-600">R$49,90/assento/mês</span>
             </div>
-
-            {/* Team card — only if user owns/admins an org */}
-            {upgradeOrgId && (
-              <div className="rounded-2xl border border-purple-200 bg-white p-5">
-                <div className="mb-3 flex items-baseline justify-between">
-                  <h2 className="text-sm font-bold text-gray-900">Team</h2>
-                  <span className="text-sm font-semibold text-purple-600">R$49,90/assento/mês</span>
-                </div>
-                <ul className="mb-4 space-y-2 text-sm text-gray-600">
-                  {TEAM_BENEFITS.map((b) => (
-                    <li key={b} className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-purple-400" />{b}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <ul className="space-y-2 text-sm text-gray-600">
+              {TEAM_BENEFITS.map((b) => (
+                <li key={b} className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-purple-400" />{b}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          /* Individual user — show Pro only */
+          <div className="rounded-2xl border border-blue-200 bg-white p-5">
+            <div className="mb-3 flex items-baseline justify-between">
+              <h2 className="text-sm font-bold text-gray-900">Pro</h2>
+              <span className="text-sm font-semibold text-blue-600">R$29,90/mês</span>
+            </div>
+            <ul className="space-y-2 text-sm text-gray-600">
+              {PRO_BENEFITS.map((b) => (
+                <li key={b} className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-blue-400" />{b}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
