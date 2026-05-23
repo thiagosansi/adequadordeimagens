@@ -17,11 +17,21 @@ export async function GET(
 
     const db = createServiceClient()
 
+    // Resolve caller's own role first (independent of full member list)
+    const { data: callerMembership } = await db
+      .from('organization_members')
+      .select('role')
+      .eq('organization_id', orgId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    const callerRole = callerMembership?.role ?? null
+
     const { data: members, error } = await db
       .from('organization_members')
       .select('user_id, role, joined_at, profile:user_profiles(full_name)')
       .eq('organization_id', orgId)
-      .order('joined_at', { ascending: true })
+      .order('joined_at', { ascending: true, nullsFirst: false })
 
     if (error) return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 })
 
@@ -43,7 +53,7 @@ export async function GET(
       isCurrentUser: m.user_id === user.id,
     }))
 
-    return NextResponse.json({ members: result })
+    return NextResponse.json({ members: result, callerRole })
   } catch (err) {
     console.error('[members/GET]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

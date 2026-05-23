@@ -26,6 +26,7 @@ export default function MembersPage() {
   const { orgId } = useParams<{ orgId: string }>()
 
   const [members, setMembers] = useState<Member[]>([])
+  const [callerRole, setCallerRole] = useState<string | null>(null)
   const [loadingMembers, setLoadingMembers] = useState(true)
 
   // Invite form
@@ -43,8 +44,9 @@ export default function MembersPage() {
     setLoadingMembers(true)
     try {
       const res = await fetch(`/api/org/${orgId}/members`)
-      const data = await res.json() as { members?: Member[] }
+      const data = await res.json() as { members?: Member[]; callerRole?: string | null }
       setMembers(data.members ?? [])
+      setCallerRole(data.callerRole ?? null)
     } finally {
       setLoadingMembers(false)
     }
@@ -97,7 +99,7 @@ export default function MembersPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const currentUserRole = members.find((m) => m.isCurrentUser)?.role ?? ''
+  const currentUserRole = callerRole ?? members.find((m) => m.isCurrentUser)?.role ?? ''
   const canManage = ['owner', 'admin'].includes(currentUserRole)
 
   return (

@@ -52,9 +52,10 @@ export async function POST(request: Request) {
         // Non-fatal: profile was already saved
       } else if (org) {
         orgId = org.id
-        await db
+        const { error: memberError } = await db
           .from('organization_members')
           .insert({ organization_id: org.id, user_id: user.id, role: 'owner', joined_at: new Date().toISOString() })
+        if (memberError) console.error('[onboarding] member insert failed:', memberError)
       }
     }
 
