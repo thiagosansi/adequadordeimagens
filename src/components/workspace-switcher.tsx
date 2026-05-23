@@ -98,15 +98,26 @@ export function WorkspaceSwitcher({ userName }: { userName?: string }) {
 
           {/* Org workspaces */}
           {orgs.map(org => (
-            <button
-              key={org.id}
-              onClick={() => switchTo(org.id)}
-              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition hover:bg-gray-50 ${activeOrgId === org.id ? 'font-medium text-blue-600' : 'text-gray-700'}`}
-            >
-              <Building2 className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-              <span className="truncate">{org.name}</span>
-              {activeOrgId === org.id && <span className="ml-auto text-xs text-blue-400">ativo</span>}
-            </button>
+            <div key={org.id}>
+              <button
+                onClick={() => switchTo(org.id)}
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition hover:bg-gray-50 ${activeOrgId === org.id ? 'font-medium text-blue-600' : 'text-gray-700'}`}
+              >
+                <Building2 className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                <span className="truncate">{org.name}</span>
+                {activeOrgId === org.id && <span className="ml-auto text-xs text-blue-400">ativo</span>}
+              </button>
+              {activeOrgId === org.id && (
+                <div className="border-t border-gray-50 pb-1">
+                  <a href={`/app/org/${org.id}/members`} className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-500 hover:bg-gray-50">
+                    Membros
+                  </a>
+                  <a href={`/app/org/${org.id}/brand-kit`} className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-gray-500 hover:bg-gray-50">
+                    Brand Kit
+                  </a>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
