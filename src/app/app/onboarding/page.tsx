@@ -28,7 +28,10 @@ export default function OnboardingPage() {
         throw new Error(data.error ?? 'Algo deu errado.')
       }
 
-      router.replace('/app')
+      const nextParam = typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('next') ?? '/app'
+        : '/app'
+      router.replace(nextParam)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Algo deu errado.')
     } finally {
