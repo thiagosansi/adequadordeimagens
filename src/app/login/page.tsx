@@ -27,7 +27,7 @@ export default function LoginPage() {
       } else if (view === 'signup') {
         const session = await signUp(email, password)
         if (session) {
-          window.location.href = '/app'
+          window.location.href = '/app/onboarding'
         } else {
           setMessage('Conta criada! Verifique seu e-mail para confirmar.')
         }
