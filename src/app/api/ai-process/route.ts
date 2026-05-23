@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { checkAndConsumeQuota, resolveActiveEntity } from '@/lib/quota'
 
 export const maxDuration = 60 // seconds — Cloudinary gen_fill can take a while
 
@@ -55,6 +57,28 @@ async function fetchWithRetry(
 
 export async function POST(request: Request) {
   try {
+    // ── Auth + quota check ──────────────────────────────────────────────────
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ ok: false, error: 'Não autorizado' }, { status: 401 })
+    }
+
+    const { entityType, entityId } = await resolveActiveEntity(user.id)
+    const quota = await checkAndConsumeQuota(user.id, entityType, entityId, 'ai_request')
+
+    if (!quota.allowed) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Limite de solicitações de IA atingido para este período.',
+          quota: { remaining: 0, limit: quota.limit, upgradeRequired: quota.upgradeRequired },
+        },
+        { status: 429 },
+      )
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
     const body = await request.json() as RequestBody
     const { dataUrl, width, height, mode } = body
 

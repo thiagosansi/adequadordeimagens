@@ -8,7 +8,7 @@ export type AIMode = 'smart-crop' | 'generative-fill'
 
 export type AIResult =
   | { ok: true; dataUrl: string }
-  | { ok: false; error: string }
+  | { ok: false; error: string; quotaExceeded?: boolean }
 
 export async function processImageWithAI(
   dataUrl: string,
@@ -22,6 +22,15 @@ export async function processImageWithAI(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ dataUrl, width, height, mode }),
     })
+
+    if (response.status === 429) {
+      const data = await response.json() as { error?: string }
+      return {
+        ok: false,
+        error: data.error ?? 'Limite de IA atingido.',
+        quotaExceeded: true,
+      }
+    }
 
     if (!response.ok) {
       return { ok: false, error: `Erro do servidor: ${response.status}` }

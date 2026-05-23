@@ -11,6 +11,7 @@ import { saveProject } from '@/lib/projects'
 import { createClient } from '@/lib/supabase/client'
 import { trackEvent } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
+import { UpgradeModal } from '@/components/upgrade-modal'
 
 type Metadata = {
   description: string
@@ -46,6 +47,7 @@ export function DownloadPanel({ processedDataUrl, format, originalFileName, requ
   const [isCompressing, setIsCompressing] = useState(false)
   const [showMetadata, setShowMetadata] = useState(false)
   const [metadata, setMetadata] = useState<Metadata>({ description: '', author: '', copyright: '' })
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   const estimatedKB = estimateDataUrlSizeKB(processedDataUrl)
   const estimatedMB = (estimatedKB / 1024).toFixed(1)
@@ -61,6 +63,13 @@ export function DownloadPanel({ processedDataUrl, format, originalFileName, requ
   async function handleDownload() {
     setIsCompressing(true)
     try {
+      // Check export quota before triggering the download
+      const quotaRes = await fetch('/api/track-export', { method: 'POST' })
+      if (quotaRes.status === 429) {
+        setShowUpgradeModal(true)
+        return
+      }
+
       const dataUrlWithExif = injectExif(processedDataUrl, metadata)
       const res = await fetch(dataUrlWithExif)
       const blob = await res.blob()
@@ -113,6 +122,10 @@ export function DownloadPanel({ processedDataUrl, format, originalFileName, requ
   }
 
   return (
+    <>
+      {showUpgradeModal && (
+        <UpgradeModal reason="export" onClose={() => setShowUpgradeModal(false)} />
+      )}
     <div
       className={cn(
         'rounded-xl border p-4',
@@ -220,5 +233,6 @@ export function DownloadPanel({ processedDataUrl, format, originalFileName, requ
         )}
       </div>
     </div>
+    </>
   )
 }

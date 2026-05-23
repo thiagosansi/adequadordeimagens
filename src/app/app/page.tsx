@@ -36,6 +36,7 @@ import { BatchExportPanel } from '@/components/batch-export-panel'
 import { AppModeSwitcher } from '@/components/app-mode-switcher'
 import type { AppMode } from '@/components/app-mode-switcher'
 import { WorkspaceSwitcher } from '@/components/workspace-switcher'
+import { UpgradeModal } from '@/components/upgrade-modal'
 import { CarouselSection } from '@/components/carousel/carousel-section'
 import { VideoSection } from '@/components/video-section'
 import { BatchSection } from '@/components/batch-section'
@@ -70,6 +71,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
   const [isAIProcessing, setIsAIProcessing] = useState(false)
   const [aiError, setAIError] = useState<string | null>(null)
   const [lastAIMode, setLastAIMode] = useState<AIMode | null>(null)
+  const [upgradeReason, setUpgradeReason] = useState<'ai_request' | 'export' | null>(null)
 
   const handleImageLoad = useCallback(
     (file: File, url: string) => {
@@ -178,6 +180,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
       const result = await processImageWithAI(dataUrl, selectedFormat.width, selectedFormat.height, aiMode)
       if (!result.ok) {
         setAIError(result.error)
+        if (result.quotaExceeded) setUpgradeReason('ai_request')
       } else {
         setProcessedUrl(result.dataUrl)
         setLastAIMode(aiMode)
@@ -223,6 +226,9 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      {upgradeReason && (
+        <UpgradeModal reason={upgradeReason} onClose={() => setUpgradeReason(null)} />
+      )}
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-5xl px-4">
           {/* Row 1: logo + right actions */}
