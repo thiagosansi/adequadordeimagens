@@ -1,21 +1,68 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Download, Trash2, Loader2, FolderOpen } from 'lucide-react'
+import { ArrowLeft, Download, Trash2, Loader2, FolderOpen, User, Building2 } from 'lucide-react'
 import { listProjects, deleteProject, type Project } from '@/lib/projects'
 import { getExportUrl } from '@/lib/storage'
 
+interface Workspace {
+  id: string
+  name: string
+  role: string
+}
+
+function getActiveOrgId(): string | null {
+  if (typeof document === 'undefined') return null
+  const match = document.cookie.match(/(?:^|;\s*)adframe-workspace=([^;]*)/)
+  return match ? decodeURIComponent(match[1] ?? '') || null : null
+}
+
 export default function ProjectsPage() {
+  const [tab, setTab] = useState<'personal' | 'org'>('personal')
+  const [activeOrgId, setActiveOrgId] = useState<string | null>(null)
+  const [activeOrgName, setActiveOrgName] = useState<string>('')
+  const [hasOrg, setHasOrg] = useState(false)
+
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
+  // Resolve active workspace on mount
   useEffect(() => {
-    listProjects()
-      .then(setProjects)
-      .finally(() => setLoading(false))
+    const orgId = getActiveOrgId()
+    setActiveOrgId(orgId)
+
+    fetch('/api/workspaces')
+      .then(r => r.json())
+      .then((data: { workspaces?: Workspace[] }) => {
+        const orgs = data.workspaces ?? []
+        setHasOrg(orgs.length > 0)
+        const active = orgs.find(o => o.id === orgId)
+        if (active) setActiveOrgName(active.name)
+        // Auto-switch to org tab if workspace is active
+        if (orgId && active) setTab('org')
+      })
+      .catch(() => {/* silent */})
   }, [])
+
+  const loadProjects = useCallback(async (context: 'personal' | 'org') => {
+    setLoading(true)
+    setProjects([])
+    try {
+      const orgId = context === 'org' ? activeOrgId : null
+      const data = await listProjects(orgId)
+      setProjects(data)
+    } catch {
+      // noop
+    } finally {
+      setLoading(false)
+    }
+  }, [activeOrgId])
+
+  useEffect(() => {
+    void loadProjects(tab)
+  }, [tab, loadProjects])
 
   async function handleDownload(project: Project) {
     try {
@@ -52,10 +99,7 @@ export default function ProjectsPage() {
             </div>
             <span className="font-semibold text-gray-900">AdFrame</span>
           </Link>
-          <Link
-            href="/app"
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800"
-          >
+          <Link href="/app" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800">
             <ArrowLeft className="h-4 w-4" />
             Voltar ao editor
           </Link>
@@ -63,7 +107,37 @@ export default function ProjectsPage() {
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold text-gray-900">Meus projetos</h1>
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Projetos</h1>
+        </div>
+
+        {/* Tabs — only shown when user has an active org */}
+        {hasOrg && activeOrgId && (
+          <div className="mb-6 flex gap-1 rounded-xl border border-gray-200 bg-white p-1 w-fit">
+            <button
+              onClick={() => setTab('personal')}
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                tab === 'personal'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              <User className="h-3.5 w-3.5" />
+              Pessoal
+            </button>
+            <button
+              onClick={() => setTab('org')}
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                tab === 'org'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              <Building2 className="h-3.5 w-3.5" />
+              {activeOrgName || 'Equipe'}
+            </button>
+          </div>
+        )}
 
         {loading && (
           <div className="flex items-center justify-center py-16 text-gray-400">
@@ -74,7 +148,11 @@ export default function ProjectsPage() {
         {!loading && projects.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-gray-400">
             <FolderOpen className="h-12 w-12" />
-            <p className="text-sm">Nenhum projeto ainda.<br />Faça seu primeiro export no editor.</p>
+            <p className="text-sm">
+              {tab === 'org'
+                ? 'Nenhum projeto da equipe ainda.\nExporte uma imagem com o workspace da organização ativo.'
+                : 'Nenhum projeto ainda.\nFaça seu primeiro export no editor.'}
+            </p>
             <Link
               href="/app"
               className="mt-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
@@ -94,25 +172,29 @@ export default function ProjectsPage() {
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-gray-900">{project.format_label}</p>
-                    <p className="text-xs text-gray-400">
-                      {project.width}×{project.height} px
-                    </p>
+                    <p className="text-xs text-gray-400">{project.width}×{project.height} px</p>
                   </div>
                   <span className="shrink-0 rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
                     {project.format_id}
                   </span>
                 </div>
 
-                <p className="mb-4 truncate text-xs text-gray-400" title={project.name}>
+                <p className="mb-1 truncate text-xs text-gray-400" title={project.name}>
                   {project.name}
                 </p>
 
-                <div className="mt-auto flex items-center justify-between">
+                {/* Creator — shown for org projects */}
+                {tab === 'org' && project.creator_name && (
+                  <p className="mb-3 flex items-center gap-1 text-xs text-gray-400">
+                    <User className="h-3 w-3" />
+                    {project.creator_name}
+                  </p>
+                )}
+
+                <div className="mt-auto flex items-center justify-between pt-3">
                   <span className="text-xs text-gray-400">
                     {new Date(project.created_at).toLocaleDateString('pt-BR', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
+                      day: '2-digit', month: 'short', year: 'numeric',
                     })}
                   </span>
                   <div className="flex items-center gap-2">

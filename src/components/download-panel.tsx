@@ -111,7 +111,9 @@ export function DownloadPanel({ processedDataUrl, format, originalFileName, requ
           const { data: { user } } = await supabase.auth.getUser()
           if (!user) return
           const storagePath = await uploadExport(user.id, finalBlob, format.id)
-          await saveProject({ name: fileName, format, storagePath })
+          const rawWorkspace = document.cookie.match(/(?:^|;\s*)adframe-workspace=([^;]*)/)
+          const organizationId = rawWorkspace ? decodeURIComponent(rawWorkspace[1] ?? '') || null : null
+          await saveProject({ name: fileName, format, storagePath, organizationId })
         } catch {
           // Salvar no histórico é não-crítico
         }
