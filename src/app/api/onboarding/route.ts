@@ -25,14 +25,13 @@ export async function POST(request: Request) {
 
     const db = createServiceClient()
 
-    // Update user profile
+    // Upsert user profile — handles both new users (trigger ran) and legacy users (no row yet)
     const { error: profileError } = await db
       .from('user_profiles')
-      .update({ full_name: fullName.trim() })
-      .eq('id', user.id)
+      .upsert({ id: user.id, full_name: fullName.trim() }, { onConflict: 'id' })
 
     if (profileError) {
-      console.error('[onboarding] profile update failed:', profileError)
+      console.error('[onboarding] profile upsert failed:', profileError)
       return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
     }
 
@@ -44,7 +43,7 @@ export async function POST(request: Request) {
 
       const { data: org, error: orgError } = await db
         .from('organizations')
-        .insert({ name: orgName.trim(), slug })
+        .insert({ name: orgName.trim(), slug, owner_id: user.id })
         .select('id')
         .single()
 
@@ -55,7 +54,7 @@ export async function POST(request: Request) {
         orgId = org.id
         await db
           .from('organization_members')
-          .insert({ organization_id: org.id, user_id: user.id, role: 'owner' })
+          .insert({ organization_id: org.id, user_id: user.id, role: 'owner', joined_at: new Date().toISOString() })
       }
     }
 
