@@ -71,6 +71,22 @@ const STATUS_CONFIG = {
   incomplete:{ label: 'Incompleto',    icon: AlertTriangle, color: 'text-gray-500 bg-gray-50'  },
 } as const
 
+const PRO_BENEFITS = [
+  '100 exportações/mês',
+  '30 solicitações de IA/mês',
+  'Todas as plataformas',
+  'Suporte por email',
+]
+
+const TEAM_BENEFITS = [
+  '400 exportações/assento/mês',
+  '80 solicitações de IA/assento/mês',
+  'Todas as plataformas',
+  'Brand Kit da empresa',
+  'Gestão de equipe',
+  'Suporte prioritário',
+]
+
 export default async function BillingPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -113,6 +129,17 @@ export default async function BillingPage() {
   const status = STATUS_CONFIG[statusKey] ?? STATUS_CONFIG.active
   const StatusIcon = status.icon
 
+  // Fetch the first org where user is owner or admin (to offer Team upgrade)
+  const { data: orgMembership } = await db
+    .from('organization_members')
+    .select('organization_id')
+    .eq('user_id', user.id)
+    .in('role', ['owner', 'admin'])
+    .limit(1)
+    .maybeSingle()
+
+  const upgradeOrgId = orgMembership?.organization_id ?? null
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -146,7 +173,7 @@ export default async function BillingPage() {
               <p className="mt-1 text-2xl font-bold text-gray-900">
                 {PLAN_LABEL[plan?.id ?? 'free']}
               </p>
-              {plan?.price_cents && (
+              {!!plan?.price_cents && (
                 <p className="mt-0.5 text-sm text-gray-500">
                   R${(plan.price_cents / 100).toFixed(2).replace('.', ',')}/mês
                 </p>
@@ -196,23 +223,56 @@ export default async function BillingPage() {
           </div>
         </div>
 
-        {/* Plan features */}
-        {plan && (
+        {/* Plan benefits */}
+        {isPaid ? (
           <div className="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 className="mb-3 text-sm font-semibold text-gray-700">Recursos do plano</h2>
             <ul className="space-y-2 text-sm text-gray-600">
-              {plan.features.batch_export && <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" />Exportação em lote</li>}
-              {plan.features.video && <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" />Processamento de vídeo</li>}
-              {plan.features.carousel && <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" />Carrossel</li>}
-              {plan.features.brand_kit && <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" />Brand Kit</li>}
-              {plan.features.approval_flow && <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" />Fluxo de aprovação</li>}
-              {plan.features.analytics && <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" />Analytics</li>}
+              {(plan?.id === 'team' ? TEAM_BENEFITS : PRO_BENEFITS).map((b) => (
+                <li key={b} className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />{b}
+                </li>
+              ))}
             </ul>
+          </div>
+        ) : (
+          <div className={`grid gap-4 ${upgradeOrgId ? 'sm:grid-cols-2' : ''}`}>
+            {/* Pro card */}
+            <div className="rounded-2xl border border-blue-200 bg-white p-5">
+              <div className="mb-3 flex items-baseline justify-between">
+                <h2 className="text-sm font-bold text-gray-900">Pro</h2>
+                <span className="text-sm font-semibold text-blue-600">R$29,90/mês</span>
+              </div>
+              <ul className="mb-4 space-y-2 text-sm text-gray-600">
+                {PRO_BENEFITS.map((b) => (
+                  <li key={b} className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-blue-400" />{b}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Team card — only if user owns/admins an org */}
+            {upgradeOrgId && (
+              <div className="rounded-2xl border border-purple-200 bg-white p-5">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <h2 className="text-sm font-bold text-gray-900">Team</h2>
+                  <span className="text-sm font-semibold text-purple-600">R$49,90/assento/mês</span>
+                </div>
+                <ul className="mb-4 space-y-2 text-sm text-gray-600">
+                  {TEAM_BENEFITS.map((b) => (
+                    <li key={b} className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-purple-400" />{b}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
         {/* Actions */}
-        <BillingActions isPaid={isPaid} />
+        <BillingActions isPaid={isPaid} orgId={upgradeOrgId ?? undefined} />
       </div>
     </div>
   )
