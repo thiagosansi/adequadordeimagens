@@ -58,15 +58,21 @@ export function OrgSidebar({ userDisplay, userEmail }: { userDisplay: string; us
   }, [orgId, role])
 
   // Don't render until we know the user's context
-  if (!ready || !orgId || !['owner', 'admin'].includes(role ?? '')) return null
+  if (!ready || !orgId || !role) return null
+
+  const isAdmin = ['owner', 'admin'].includes(role)
 
   const navItems = [
     { href: '/app', label: 'Editor', icon: LayoutGrid },
     { href: '/app/projects', label: 'Projetos', icon: FolderOpen },
-    { href: `/app/org/${orgId}/approvals`, label: 'Aprovações', icon: CheckSquare, badge: pendingCount },
-    { href: `/app/org/${orgId}/members`, label: 'Membros', icon: Users },
+    ...(isAdmin ? [
+      { href: `/app/org/${orgId}/approvals`, label: 'Aprovações', icon: CheckSquare, badge: pendingCount },
+      { href: `/app/org/${orgId}/members`, label: 'Membros', icon: Users },
+    ] : []),
     { href: `/app/org/${orgId}/brand-kit`, label: 'Brand Kit', icon: Palette },
-    { href: '/app/billing', label: 'Cobrança', icon: CreditCard },
+    ...(isAdmin ? [
+      { href: '/app/billing', label: 'Cobrança', icon: CreditCard },
+    ] : []),
   ]
 
   return (
@@ -121,7 +127,7 @@ export function OrgSidebar({ userDisplay, userEmail }: { userDisplay: string; us
           <p className="truncate text-xs text-gray-400">{userEmail}</p>
         )}
         <span className="mt-1.5 inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500">
-          {role === 'owner' ? 'Dono' : 'Admin'}
+          {role === 'owner' ? 'Dono' : role === 'admin' ? 'Admin' : role === 'media_buyer' ? 'Media Buyer' : role === 'designer' ? 'Designer' : 'Visualizador'}
         </span>
       </div>
     </aside>

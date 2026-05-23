@@ -35,7 +35,6 @@ import { CreativeIntelligencePanel } from '@/components/creative-intelligence-pa
 import { BatchExportPanel } from '@/components/batch-export-panel'
 import { AppModeSwitcher } from '@/components/app-mode-switcher'
 import type { AppMode } from '@/components/app-mode-switcher'
-import { WorkspaceSwitcher } from '@/components/workspace-switcher'
 import { UpgradeModal } from '@/components/upgrade-modal'
 import { CarouselSection } from '@/components/carousel/carousel-section'
 import { VideoSection } from '@/components/video-section'
@@ -255,13 +254,6 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
                   Nova imagem
                 </button>
               )}
-              <Link href="/app/projects" className="hidden text-sm text-gray-500 hover:text-gray-800 sm:block">
-                Meus projetos
-              </Link>
-              <Link href="/app/billing" className="hidden text-sm text-gray-500 hover:text-gray-800 sm:block">
-                Cobrança
-              </Link>
-              <WorkspaceSwitcher />
               <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-gray-600">
                 Sair
               </button>
