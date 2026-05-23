@@ -36,6 +36,7 @@ import { BatchExportPanel } from '@/components/batch-export-panel'
 import { AppModeSwitcher } from '@/components/app-mode-switcher'
 import type { AppMode } from '@/components/app-mode-switcher'
 import { UpgradeModal } from '@/components/upgrade-modal'
+import { WelcomeCard } from '@/components/editor-welcome'
 import { CarouselSection } from '@/components/carousel/carousel-section'
 import { VideoSection } from '@/components/video-section'
 import { BatchSection } from '@/components/batch-section'
@@ -71,6 +72,22 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
   const [aiError, setAIError] = useState<string | null>(null)
   const [lastAIMode, setLastAIMode] = useState<AIMode | null>(null)
   const [upgradeReason, setUpgradeReason] = useState<'ai_request' | 'export' | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/workspaces')
+      .then((r) => r.json())
+      .then((data: { workspaces?: { id: string; role: string }[] }) => {
+        const activeId = (() => {
+          if (typeof document === 'undefined') return null
+          const m = document.cookie.match(/(?:^|;\s*)adframe-workspace=([^;]*)/)
+          return m ? decodeURIComponent(m[1] ?? '') || null : null
+        })()
+        const active = (data.workspaces ?? []).find((w) => w.id === activeId)
+        if (active && ['owner', 'admin'].includes(active.role)) setIsAdmin(true)
+      })
+      .catch(() => {})
+  }, [])
 
   const handleImageLoad = useCallback(
     (file: File, url: string) => {
@@ -272,7 +289,10 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
         {appMode === 'batch' && <BatchSection />}
 
         {appMode === 'single' && !originalUrl ? (
-          <ImageUploader onImageLoad={handleImageLoad} />
+          <div className="space-y-4">
+            <WelcomeCard onSelectMode={setAppMode} isAdmin={isAdmin} />
+            <ImageUploader onImageLoad={handleImageLoad} />
+          </div>
         ) : appMode === 'single' && (
           <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
