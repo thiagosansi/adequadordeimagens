@@ -6,6 +6,11 @@ import Link from 'next/link'
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const nextParam = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('next') ?? '/app'
+    : '/app'
+  const isFromInvite = nextParam.startsWith('/invite/')
+
   const [fullName, setFullName] = useState('')
   const [orgName, setOrgName] = useState('')
   const [loading, setLoading] = useState(false)
@@ -28,9 +33,6 @@ export default function OnboardingPage() {
         throw new Error(data.error ?? 'Algo deu errado.')
       }
 
-      const nextParam = typeof window !== 'undefined'
-        ? new URLSearchParams(window.location.search).get('next') ?? '/app'
-        : '/app'
       router.replace(nextParam)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Algo deu errado.')
@@ -69,28 +71,34 @@ export default function OnboardingPage() {
               type="text"
               required
               value={fullName}
-              onChange={e => setFullName(e.target.value)}
+              onChange={(e) => setFullName(e.target.value)}
               placeholder="João Silva"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Nome da empresa{' '}
-              <span className="font-normal text-gray-400">(opcional)</span>
-            </label>
-            <input
-              type="text"
-              value={orgName}
-              onChange={e => setOrgName(e.target.value)}
-              placeholder="Agência XYZ"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-            <p className="mt-1 text-xs text-gray-400">
-              Crie um workspace para colaborar com sua equipe.
+          {isFromInvite ? (
+            <p className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              Você está aceitando um convite — não é necessário criar um workspace agora.
             </p>
-          </div>
+          ) : (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Nome da empresa{' '}
+                <span className="font-normal text-gray-400">(opcional)</span>
+              </label>
+              <input
+                type="text"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+                placeholder="Agência XYZ"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                Crie um workspace para colaborar com sua equipe.
+              </p>
+            </div>
+          )}
 
           {error && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>

@@ -1,21 +1,49 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { login, signUp, resetPassword } from '@/lib/auth'
 
 type View = 'login' | 'signup' | 'forgot'
+
+interface InviteMeta {
+  email: string
+  orgName: string | null
+  expired: boolean
+  accepted: boolean
+}
 
 export default function LoginPage() {
   const [view, setView] = useState<View>('login')
   const nextUrl = typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('next') ?? '/app'
     : '/app'
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [inviteMeta, setInviteMeta] = useState<InviteMeta | null>(null)
+
+  // When arriving via an invite link, fetch metadata and pre-fill the form
+  useEffect(() => {
+    const inviteToken = nextUrl.startsWith('/invite/')
+      ? nextUrl.replace('/invite/', '').split('?')[0]
+      : null
+
+    if (!inviteToken) return
+
+    fetch(`/api/invite/${inviteToken}`)
+      .then(async (res) => {
+        if (!res.ok) return
+        const data = await res.json() as InviteMeta
+        setInviteMeta(data)
+        setEmail(data.email)
+        setView('signup')
+      })
+      .catch(() => { /* silently ignore — user can fill manually */ })
+  }, [nextUrl])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -62,6 +90,27 @@ export default function LoginPage() {
       </Link>
 
       <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        {/* Invite banner */}
+        {inviteMeta && !inviteMeta.expired && !inviteMeta.accepted && (
+          <div className="mb-6 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            Você foi convidado para participar do time
+            {inviteMeta.orgName ? (
+              <> <strong>{inviteMeta.orgName}</strong>.</>
+            ) : '.'}
+            {' '}Crie sua conta para aceitar.
+          </div>
+        )}
+        {inviteMeta?.expired && (
+          <div className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+            Este convite expirou. Peça ao administrador um novo convite.
+          </div>
+        )}
+        {inviteMeta?.accepted && (
+          <div className="mb-6 rounded-lg bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+            Este convite já foi aceito. Faça login para acessar.
+          </div>
+        )}
+
         <h1 className="mb-6 text-center text-xl font-bold text-gray-900">
           {view === 'login' && 'Entrar na sua conta'}
           {view === 'signup' && 'Criar conta'}
@@ -75,7 +124,7 @@ export default function LoginPage() {
               type="email"
               required
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
@@ -83,12 +132,14 @@ export default function LoginPage() {
 
           {view !== 'forgot' && (
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Senha</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                {view === 'signup' ? 'Defina uma senha' : 'Senha'}
+              </label>
               <input
                 type="password"
                 required
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 minLength={6}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
