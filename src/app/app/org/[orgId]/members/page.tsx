@@ -2,8 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft, UserPlus, Copy, Check, Trash2, Loader2 } from 'lucide-react'
+import { UserPlus, Copy, Check, Trash2, Loader2 } from 'lucide-react'
 
 const ROLE_LABELS: Record<string, string> = {
   owner: 'Dono',
@@ -117,16 +116,7 @@ export default function MembersPage() {
   const canManage = ['owner', 'admin'].includes(currentUserRole)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-2xl px-4 py-4">
-          <Link href="/app" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800">
-            <ArrowLeft className="h-4 w-4" />
-            Voltar ao editor
-          </Link>
-        </div>
-      </div>
-
+    <div className="min-h-full bg-gray-50">
       <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Membros da equipe</h1>

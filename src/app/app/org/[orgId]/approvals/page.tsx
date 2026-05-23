@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, XCircle, Clock, Loader2, Users } from 'lucide-react'
+import { CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react'
 
 interface Approval {
   id: string
@@ -63,22 +62,7 @@ export default function ApprovalsPage() {
   const reviewed  = approvals.filter(a => a.status !== 'pending' && a.status !== 'cancelled')
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-2xl px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/app" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800">
-              <ArrowLeft className="h-4 w-4" />
-              Voltar ao editor
-            </Link>
-            <Link href={`/app/org/${orgId}/members`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800">
-              <Users className="h-4 w-4" />
-              Membros
-            </Link>
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-full bg-gray-50">
       <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <div className="flex items-center justify-between">
           <div>
