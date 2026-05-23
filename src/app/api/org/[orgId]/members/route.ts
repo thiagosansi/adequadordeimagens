@@ -27,16 +27,29 @@ export async function GET(
 
     const callerRole = callerMembership?.role ?? null
 
+    // No direct FK between organization_members and user_profiles —
+    // fetch member rows without join, then enrich with profiles and emails separately.
     const { data: members, error } = await db
       .from('organization_members')
-      .select('user_id, role, joined_at, profile:user_profiles(full_name)')
+      .select('user_id, role, joined_at')
       .eq('organization_id', orgId)
-      .order('joined_at', { ascending: true, nullsFirst: false })
+      .order('joined_at', { ascending: true })
 
     if (error) return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 })
 
-    // Get emails from auth.users via service client
     const userIds = (members ?? []).map((m) => m.user_id)
+
+    // Fetch full names from user_profiles
+    const { data: profiles } = await db
+      .from('user_profiles')
+      .select('id, full_name')
+      .in('id', userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000'])
+
+    const nameMap = Object.fromEntries(
+      (profiles ?? []).map((p) => [p.id, p.full_name ?? null]),
+    )
+
+    // Fetch emails from auth.users
     const { data: authUsers } = await db.auth.admin.listUsers()
     const emailMap = Object.fromEntries(
       (authUsers?.users ?? [])
@@ -48,7 +61,7 @@ export async function GET(
       userId: m.user_id,
       role: m.role,
       joinedAt: m.joined_at,
-      fullName: (m.profile as { full_name?: string } | null)?.full_name ?? null,
+      fullName: nameMap[m.user_id] ?? null,
       email: emailMap[m.user_id] ?? '',
       isCurrentUser: m.user_id === user.id,
     }))
