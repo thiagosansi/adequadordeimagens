@@ -258,6 +258,9 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
               <Link href="/app/projects" className="hidden text-sm text-gray-500 hover:text-gray-800 sm:block">
                 Meus projetos
               </Link>
+              <Link href="/app/billing" className="hidden text-sm text-gray-500 hover:text-gray-800 sm:block">
+                Cobrança
+              </Link>
               <WorkspaceSwitcher />
               <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-gray-600">
                 Sair
