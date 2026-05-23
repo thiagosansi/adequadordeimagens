@@ -15,13 +15,14 @@ export async function GET(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { data, error } = await supabase
+    // No direct FK from approval_requests to user_profiles (both reference auth.users).
+    // Fetch base rows + project join first, then enrich with names separately.
+    const { data: rows, error } = await supabase
       .from('approval_requests')
       .select(`
         id, status, comment, created_at, updated_at,
-        project:projects(id, name, format_label, width, height),
-        requester:user_profiles!approval_requests_requester_id_fkey(full_name),
-        reviewer:user_profiles!approval_requests_reviewer_id_fkey(full_name)
+        requester_id, reviewer_id,
+        project:projects(id, name, format_label, width, height)
       `)
       .eq('organization_id', orgId)
       .order('created_at', { ascending: false })
@@ -31,7 +32,36 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch approvals' }, { status: 500 })
     }
 
-    return NextResponse.json({ approvals: data ?? [] })
+    const allRows = rows ?? []
+    const userIds = [
+      ...new Set([
+        ...allRows.map((r) => r.requester_id),
+        ...allRows.filter((r) => r.reviewer_id).map((r) => r.reviewer_id as string),
+      ]),
+    ]
+
+    const db = createServiceClient()
+    const { data: profiles } = await db
+      .from('user_profiles')
+      .select('id, full_name')
+      .in('id', userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000'])
+
+    const nameMap = Object.fromEntries(
+      (profiles ?? []).map((p) => [p.id, p.full_name ?? null]),
+    )
+
+    const approvals = allRows.map((r) => ({
+      id: r.id,
+      status: r.status,
+      comment: r.comment,
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      project: r.project,
+      requester: { full_name: nameMap[r.requester_id] ?? null },
+      reviewer: r.reviewer_id ? { full_name: nameMap[r.reviewer_id] ?? null } : null,
+    }))
+
+    return NextResponse.json({ approvals })
   } catch (err) {
     console.error('[approvals/GET]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
