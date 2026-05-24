@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { RefreshButton } from './refresh-button'
+import { PlanManager } from './plan-manager'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -380,6 +381,57 @@ function DailyChart({ data }: { data: { date: string; count: number }[] }) {
   )
 }
 
+// ─── Plan management data ─────────────────────────────────────────────────────
+
+type PlanId = 'free' | 'pro' | 'team' | 'enterprise'
+
+interface UserRow { id: string; email: string; fullName: string | null; planId: PlanId }
+interface OrgRow  { id: string; name: string; planId: PlanId; memberCount: number }
+
+async function fetchPlanData(): Promise<{ users: UserRow[]; orgs: OrgRow[] }> {
+  const db = createServiceClient()
+
+  const [
+    listUsersResult,
+    { data: profiles },
+    { data: activeSubs },
+    { data: orgsRaw },
+    { data: membersRaw },
+  ] = await Promise.all([
+    db.auth.admin.listUsers({ perPage: 1000 }),
+    db.from('user_profiles').select('id, full_name'),
+    db.from('subscriptions').select('entity_type, entity_id, plan_id').in('status', ['active', 'trialing']),
+    db.from('organizations').select('id, name').order('name'),
+    db.from('organization_members').select('organization_id').not('joined_at', 'is', null),
+  ])
+
+  const authUsers = listUsersResult.data?.users ?? []
+  const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p.full_name ?? null]))
+  const subMap = Object.fromEntries(
+    (activeSubs ?? []).map((s) => [`${s.entity_type}:${s.entity_id}`, s.plan_id as PlanId])
+  )
+  const memberCount = new Map<string, number>()
+  for (const m of membersRaw ?? []) {
+    memberCount.set(m.organization_id, (memberCount.get(m.organization_id) ?? 0) + 1)
+  }
+
+  const users: UserRow[] = authUsers.map((u) => ({
+    id: u.id,
+    email: u.email ?? '',
+    fullName: profileMap[u.id] ?? null,
+    planId: subMap[`user:${u.id}`] ?? 'free',
+  }))
+
+  const orgs: OrgRow[] = (orgsRaw ?? []).map((o) => ({
+    id: o.id,
+    name: o.name,
+    planId: subMap[`organization:${o.id}`] ?? 'free',
+    memberCount: memberCount.get(o.id) ?? 0,
+  }))
+
+  return { users, orgs }
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default async function AdminPage() {
@@ -421,7 +473,7 @@ export default async function AdminPage() {
     )
   }
 
-  const metrics = await fetchMetrics()
+  const [metrics, planData] = await Promise.all([fetchMetrics(), fetchPlanData()])
   const { downloads, users, eventsPerDay, topPlatforms, topFormats, recentEvents, orgs: orgMetrics, subs: subsMetrics } = metrics
 
   const totalDownloads =
@@ -817,6 +869,17 @@ export default async function AdminPage() {
               </table>
             </div>
           )}
+        </section>
+
+        {/* ── Gestão de Planos ─────────────────────────────────────────────── */}
+        <section>
+          <h2
+            className="mb-3 text-xs font-semibold uppercase tracking-widest"
+            style={{ color: '#64748B' }}
+          >
+            Gestão de planos
+          </h2>
+          <PlanManager users={planData.users} orgs={planData.orgs} />
         </section>
 
         {/* ── Planos & Receita ─────────────────────────────────────────────── */}
