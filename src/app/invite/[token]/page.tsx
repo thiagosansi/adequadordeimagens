@@ -27,9 +27,12 @@ export default function InvitePage() {
         } else {
           setOrgId(data.orgId ?? '')
           setState('success')
-          // Redirect to org members page after 2s
+          if (data.orgId) {
+            document.cookie = `adframe-workspace=${encodeURIComponent(data.orgId)}; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`
+          }
+          // Redirect to editor after 2s
           setTimeout(() => {
-            router.replace(data.orgId ? `/app/org/${data.orgId}/members` : '/app')
+            router.replace('/app')
           }, 2000)
         }
       })
