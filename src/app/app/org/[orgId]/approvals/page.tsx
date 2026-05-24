@@ -89,7 +89,7 @@ export default function ApprovalsPage() {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex gap-1 rounded-xl border border-gray-200 bg-white p-1 w-fit">
+        <div className="flex gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-white p-1 scrollbar-none w-fit max-w-full">
           {FILTERS.map(f => (
             <button
               key={f.id}

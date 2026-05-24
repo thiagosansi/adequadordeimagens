@@ -38,6 +38,7 @@ import type { AppMode } from '@/components/app-mode-switcher'
 import { UpgradeModal } from '@/components/upgrade-modal'
 import { WelcomeCard } from '@/components/editor-welcome'
 import { ApprovalNotification } from '@/components/approval-notification'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { CarouselSection } from '@/components/carousel/carousel-section'
 import { VideoSection } from '@/components/video-section'
 import { BatchSection } from '@/components/batch-section'
@@ -75,6 +76,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
   const [upgradeReason, setUpgradeReason] = useState<'ai_request' | 'export' | 'feature_gate' | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isPaidPlan, setIsPaidPlan] = useState(true) // assume paid until proven otherwise
+  const [adjPanelOpen, setAdjPanelOpen] = useState(false)
 
   useEffect(() => {
     fetch('/api/workspaces')
@@ -97,6 +99,14 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
       .then((d: { planId: string }) => setIsPaidPlan(d.planId !== 'free'))
       .catch(() => {})
   }, [])
+
+  const handleModeChange = useCallback((m: AppMode) => {
+    if (!isPaidPlan && (m === 'batch' || m === 'video' || m === 'carousel')) {
+      setUpgradeReason('feature_gate')
+    } else {
+      setAppMode(m)
+    }
+  }, [isPaidPlan])
 
   const handleImageLoad = useCallback(
     (file: File, url: string) => {
@@ -271,13 +281,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
             <div className="flex items-center gap-3">
               {/* Mode switcher inline only on sm+ */}
               <div className="hidden sm:block">
-                <AppModeSwitcher mode={appMode} onChange={(m) => {
-                    if (!isPaidPlan && (m === 'batch' || m === 'video' || m === 'carousel')) {
-                      setUpgradeReason('feature_gate')
-                    } else {
-                      setAppMode(m)
-                    }
-                  }} />
+                <AppModeSwitcher mode={appMode} onChange={handleModeChange} />
               </div>
               {appMode === 'single' && originalFile && (
                 <button
@@ -292,15 +296,14 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
               </button>
             </div>
           </div>
-          {/* Row 2: mode switcher full-width on mobile only */}
+          {/* Row 2: scrollable mode tabs on mobile only */}
           <div className="pb-3 sm:hidden">
-            <AppModeSwitcher mode={appMode} onChange={(m) => {
-                    if (!isPaidPlan && (m === 'batch' || m === 'video' || m === 'carousel')) {
-                      setUpgradeReason('feature_gate')
-                    } else {
-                      setAppMode(m)
-                    }
-                  }} />
+            <AppModeSwitcher
+              mode={appMode}
+              onChange={handleModeChange}
+              scrollable
+              gatedModes={isPaidPlan ? [] : ['batch', 'video', 'carousel']}
+            />
           </div>
         </div>
       </header>
@@ -312,7 +315,7 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
 
         {appMode === 'single' && !originalUrl ? (
           <div className="space-y-4">
-            <WelcomeCard onSelectMode={setAppMode} isAdmin={isAdmin} />
+            <WelcomeCard onSelectMode={handleModeChange} isAdmin={isAdmin} />
             <ImageUploader onImageLoad={handleImageLoad} />
           </div>
         ) : appMode === 'single' && (
@@ -347,30 +350,29 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
         )}
 
         {appMode === 'single' && selectedFormat && originalUrl && (
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Col 1 — Adjustment controls (always order-1 on mobile, left on desktop) */}
-            <div className="space-y-6">
-              <AdjustmentPanel
-                imageUrl={originalUrl}
-                format={selectedFormat}
-                mode={adjustmentMode}
-                backgroundConfig={backgroundConfig}
-                onModeChange={setAdjustmentMode}
-                onBackgroundChange={setBackgroundConfig}
-                onInteractiveCropChange={setInteractiveCrop}
-                onApply={handleApply}
-                isProcessing={isProcessing}
-                onAIApply={handleAIApply}
-                isAIProcessing={isAIProcessing}
-              />
-              {applyError && (
-                <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{applyError}</p>
-              )}
-              {aiError && (
-                <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{aiError}</p>
-              )}
-              {/* Quality cards: visible inline on desktop, moved below preview on mobile */}
+          <>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Col 1 — desktop only: Adjustment controls */}
               <div className="hidden space-y-6 md:block">
+                <AdjustmentPanel
+                  imageUrl={originalUrl}
+                  format={selectedFormat}
+                  mode={adjustmentMode}
+                  backgroundConfig={backgroundConfig}
+                  onModeChange={setAdjustmentMode}
+                  onBackgroundChange={setBackgroundConfig}
+                  onInteractiveCropChange={setInteractiveCrop}
+                  onApply={handleApply}
+                  isProcessing={isProcessing}
+                  onAIApply={handleAIApply}
+                  isAIProcessing={isAIProcessing}
+                />
+                {applyError && (
+                  <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{applyError}</p>
+                )}
+                {aiError && (
+                  <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{aiError}</p>
+                )}
                 <QualityScoreCard
                   requirements={requirements}
                   textCoveragePercent={textCoveragePercent}
@@ -387,107 +389,127 @@ function AppContent({ router }: { router: ReturnType<typeof useRouter> }) {
                   textCoveragePercent={textCoveragePercent}
                 />
               </div>
-            </div>
 
-            {/* Col 2 — Preview + Download + Batch */}
-            <div className="space-y-4">
-              {processedUrl ? (
-                <>
-                  <PreviewPanel
-                    originalUrl={originalUrl}
-                    processedUrl={processedUrl}
-                    format={selectedFormat}
-                  />
-                  {/* Apply button: mobile only, after preview */}
-                  <button
-                    onClick={handleApply}
-                    disabled={isProcessing || isAIProcessing || !adjustmentMode}
-                    className={cn(
-                      'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors md:hidden',
-                      isProcessing || isAIProcessing || !adjustmentMode
-                        ? 'cursor-not-allowed bg-gray-200 text-gray-500'
-                        : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
-                    )}
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Processando...
-                      </>
-                    ) : (
-                      'Aplicar ajuste'
-                    )}
-                  </button>
-                  <DownloadPanel
-                    processedDataUrl={processedUrl}
-                    format={selectedFormat}
-                    originalFileName={originalFile?.name ?? 'imagem'}
-                    requirements={requirements}
-                  />
-                  <BatchExportPanel
-                    imageUrl={originalUrl}
-                    originalFileName={originalFile?.name ?? 'imagem'}
-                    mode={adjustmentMode!}
-                    backgroundConfig={backgroundConfig}
-                    interactiveCrop={interactiveCrop}
-                    aiMode={lastAIMode ?? undefined}
-                    platform={selectedFormat?.platform}
-                  />
-                </>
-              ) : (
-                <>
+              {/* Col 2 — Preview + Download + Batch */}
+              <div className="space-y-4">
+                {processedUrl ? (
+                  <>
+                    <PreviewPanel
+                      originalUrl={originalUrl}
+                      processedUrl={processedUrl}
+                      format={selectedFormat}
+                    />
+                    <DownloadPanel
+                      processedDataUrl={processedUrl}
+                      format={selectedFormat}
+                      originalFileName={originalFile?.name ?? 'imagem'}
+                      requirements={requirements}
+                    />
+                    <BatchExportPanel
+                      imageUrl={originalUrl}
+                      originalFileName={originalFile?.name ?? 'imagem'}
+                      mode={adjustmentMode!}
+                      backgroundConfig={backgroundConfig}
+                      interactiveCrop={interactiveCrop}
+                      aiMode={lastAIMode ?? undefined}
+                      platform={selectedFormat?.platform}
+                    />
+                  </>
+                ) : (
                   <div className="flex h-32 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 text-center sm:h-48">
                     <p className="text-sm text-gray-400">
                       {!adjustmentMode
-                        ? 'Selecione um modo de ajuste para gerar o preview.'
+                        ? 'Toque em "Ajustar" para escolher um modo.'
                         : isProcessing
                         ? 'Gerando preview...'
                         : 'Aguardando parâmetros...'}
                     </p>
                   </div>
-                  {/* Apply button: mobile only, below empty state */}
-                  <button
-                    onClick={handleApply}
-                    disabled={isProcessing || isAIProcessing || !adjustmentMode}
-                    className={cn(
-                      'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors md:hidden',
-                      isProcessing || isAIProcessing || !adjustmentMode
-                        ? 'cursor-not-allowed bg-gray-200 text-gray-500'
-                        : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
-                    )}
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Processando...
-                      </>
-                    ) : (
-                      'Aplicar ajuste'
-                    )}
-                  </button>
-                </>
-              )}
+                )}
+
+                {/* "Ajustar" FAB — mobile only */}
+                <button
+                  onClick={() => setAdjPanelOpen(true)}
+                  className={cn(
+                    'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors md:hidden',
+                    adjustmentMode
+                      ? 'bg-gray-900 text-white hover:bg-gray-800'
+                      : 'bg-blue-600 text-white hover:bg-blue-700',
+                  )}
+                >
+                  {adjustmentMode ? 'Alterar ajuste' : 'Ajustar imagem'}
+                </button>
+              </div>
+
+              {/* Quality cards: mobile only, below preview */}
+              <div className="space-y-6 md:hidden">
+                <QualityScoreCard
+                  requirements={requirements}
+                  textCoveragePercent={textCoveragePercent}
+                  imageAnalysis={imageAnalysis}
+                />
+                <RequirementsChecklist
+                  requirements={requirements}
+                  platformLabel={getPlatformRules(selectedFormat.platform).label}
+                  onSuggestInteractiveCrop={() => {
+                    setAdjustmentMode('interactive-crop')
+                    setAdjPanelOpen(true)
+                  }}
+                />
+                <FormatBenchmarkCard format={selectedFormat} />
+                <CreativeIntelligencePanel
+                  imageAnalysis={imageAnalysis}
+                  textCoveragePercent={textCoveragePercent}
+                />
+              </div>
             </div>
 
-            {/* Quality cards: mobile only, shown below preview */}
-            <div className="space-y-6 md:hidden">
-              <QualityScoreCard
-                requirements={requirements}
-                textCoveragePercent={textCoveragePercent}
-                imageAnalysis={imageAnalysis}
-              />
-              <RequirementsChecklist
-                requirements={requirements}
-                platformLabel={getPlatformRules(selectedFormat.platform).label}
-                onSuggestInteractiveCrop={() => setAdjustmentMode('interactive-crop')}
-              />
-              <FormatBenchmarkCard format={selectedFormat} />
-              <CreativeIntelligencePanel
-                imageAnalysis={imageAnalysis}
-                textCoveragePercent={textCoveragePercent}
-              />
-            </div>
-          </div>
+            {/* Bottom sheet — mobile adjustment panel */}
+            <BottomSheet
+              open={adjPanelOpen}
+              onClose={() => setAdjPanelOpen(false)}
+              title="Ajustar imagem"
+            >
+              <div className="space-y-4">
+                <AdjustmentPanel
+                  imageUrl={originalUrl}
+                  format={selectedFormat}
+                  mode={adjustmentMode}
+                  backgroundConfig={backgroundConfig}
+                  onModeChange={setAdjustmentMode}
+                  onBackgroundChange={setBackgroundConfig}
+                  onInteractiveCropChange={setInteractiveCrop}
+                  onApply={handleApply}
+                  isProcessing={isProcessing}
+                  onAIApply={handleAIApply}
+                  isAIProcessing={isAIProcessing}
+                />
+                {applyError && (
+                  <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{applyError}</p>
+                )}
+                {aiError && (
+                  <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{aiError}</p>
+                )}
+                {/* Apply + close */}
+                <button
+                  onClick={() => { handleApply(); setAdjPanelOpen(false) }}
+                  disabled={isProcessing || isAIProcessing || !adjustmentMode}
+                  className={cn(
+                    'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors',
+                    isProcessing || isAIProcessing || !adjustmentMode
+                      ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+                  )}
+                >
+                  {isProcessing ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" />Processando...</>
+                  ) : (
+                    'Aplicar ajuste'
+                  )}
+                </button>
+              </div>
+            </BottomSheet>
+          </>
         )}
       </div>
     </main>
