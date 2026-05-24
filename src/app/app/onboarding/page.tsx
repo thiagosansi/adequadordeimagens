@@ -33,6 +33,11 @@ export default function OnboardingPage() {
         throw new Error(data.error ?? 'Algo deu errado.')
       }
 
+      const data = await res.json() as { ok: boolean; orgId: string | null }
+      if (data.orgId) {
+        document.cookie = `adframe-workspace=${encodeURIComponent(data.orgId)}; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`
+      }
+
       router.replace(nextParam)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Algo deu errado.')
