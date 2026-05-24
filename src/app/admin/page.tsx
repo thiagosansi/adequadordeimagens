@@ -284,79 +284,53 @@ async function fetchMetrics(): Promise<Metrics> {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
+      <span className="h-4 w-1 rounded-full bg-blue-500" />
+      {children}
+    </h2>
+  )
+}
+
 function MetricCard({
   title,
   total,
   last30d,
   last7d,
-  highlight = false,
+  accent = false,
 }: {
   title: string
   total: number
   last30d: number
   last7d: number
-  highlight?: boolean
+  accent?: boolean
 }) {
   return (
-    <div
-      className="rounded-xl p-4"
-      style={{
-        backgroundColor: highlight ? '#EFF6FF' : '#FFFFFF',
-        border: `1px solid ${highlight ? '#BFDBFE' : '#E2E8F0'}`,
-      }}
-    >
-      <p
-        className="text-xs font-medium uppercase tracking-widest"
-        style={{ color: '#64748B' }}
-      >
-        {title}
-      </p>
-      <p
-        className="mt-1 text-3xl font-bold tabular-nums"
-        style={{ color: highlight ? '#1D4ED8' : '#2563EB' }}
-      >
+    <div className={`rounded-2xl border p-5 ${accent ? 'border-blue-100 bg-blue-50' : 'border-gray-100 bg-white'}`}>
+      <p className="text-xs font-medium text-gray-500">{title}</p>
+      <p className={`mt-2 text-3xl font-bold tabular-nums ${accent ? 'text-blue-700' : 'text-gray-900'}`}>
         {fmt(total)}
       </p>
-      <div className="mt-2 flex gap-3 text-xs" style={{ color: '#94A3B8' }}>
-        <span>
-          <span className="font-semibold" style={{ color: '#475569' }}>{fmt(last30d)}</span> 30d
-        </span>
-        <span>
-          <span className="font-semibold" style={{ color: '#475569' }}>{fmt(last7d)}</span> 7d
-        </span>
+      <div className="mt-3 flex gap-4 border-t border-gray-100 pt-3 text-xs text-gray-400">
+        <span><span className="font-semibold text-gray-600">{fmt(last30d)}</span> / 30d</span>
+        <span><span className="font-semibold text-gray-600">{fmt(last7d)}</span> / 7d</span>
       </div>
     </div>
   )
 }
 
-function SimpleCard({
-  title,
-  value,
-  sub,
-}: {
-  title: string
-  value: number
-  sub?: string
-}) {
+function StatCard({ title, value, sub, color = 'blue' }: { title: string; value: number | string; sub?: string; color?: 'blue' | 'green' | 'gray' }) {
+  const colors = {
+    blue:  'border-blue-100 bg-blue-50 text-blue-700',
+    green: 'border-emerald-100 bg-emerald-50 text-emerald-700',
+    gray:  'border-gray-100 bg-white text-gray-900',
+  }
   return (
-    <div
-      className="rounded-xl p-4"
-      style={{ backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE' }}
-    >
-      <p
-        className="text-xs font-medium uppercase tracking-widest"
-        style={{ color: '#64748B' }}
-      >
-        {title}
-      </p>
-      <p className="mt-1 text-3xl font-bold tabular-nums" style={{ color: '#1D4ED8' }}>
-        {fmt(value)}
-      </p>
-      {sub && (
-        <p className="mt-1 text-xs" style={{ color: '#94A3B8' }}>
-          {sub}
-        </p>
-      )}
+    <div className={`rounded-2xl border p-5 ${colors[color]}`}>
+      <p className="text-xs font-medium text-gray-500">{title}</p>
+      <p className={`mt-2 text-3xl font-bold tabular-nums`}>{typeof value === 'number' ? fmt(value) : value}</p>
+      {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
     </div>
   )
 }
@@ -364,20 +338,38 @@ function SimpleCard({
 function DailyChart({ data }: { data: { date: string; count: number }[] }) {
   const max = Math.max(...data.map((d) => d.count), 1)
   return (
-    <div className="flex h-28 items-end gap-px">
+    <div className="flex h-32 items-end gap-0.5">
       {data.map(({ date, count }) => (
-        <div key={date} className="group relative flex flex-1 flex-col items-center justify-end">
+        <div key={date} className="flex flex-1 flex-col items-center justify-end">
           <div
-            className="w-full rounded-t transition-all"
+            className="w-full rounded-t-sm transition-all"
             style={{
-              height: count > 0 ? `${Math.max(4, (count / max) * 100)}%` : '2px',
-              backgroundColor: count > 0 ? '#2563EB' : '#E2E8F0',
+              height: count > 0 ? `${Math.max(6, (count / max) * 100)}%` : '3px',
+              backgroundColor: count > 0 ? '#3b82f6' : '#e2e8f0',
             }}
             title={`${date}: ${count} evento${count !== 1 ? 's' : ''}`}
           />
         </div>
       ))}
     </div>
+  )
+}
+
+function EventBadge({ name }: { name: string }) {
+  const colors: Record<string, string> = {
+    download_image:         'bg-blue-50 text-blue-700',
+    download_batch:         'bg-purple-50 text-purple-700',
+    download_all_platforms: 'bg-indigo-50 text-indigo-700',
+    download_video:         'bg-pink-50 text-pink-700',
+    download_carousel:      'bg-orange-50 text-orange-700',
+    user_signup:            'bg-emerald-50 text-emerald-700',
+    user_login:             'bg-gray-100 text-gray-600',
+    project_saved:          'bg-amber-50 text-amber-700',
+  }
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[name] ?? 'bg-gray-100 text-gray-500'}`}>
+      {EVENT_LABELS[name] ?? name}
+    </span>
   )
 }
 
@@ -484,290 +476,152 @@ export default async function AdminPage() {
     downloads.carousel.total
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: '#F8FAFC' }}>
+    <main className="min-h-screen bg-slate-50">
 
-      {/* Header */}
-      <header
-        className="sticky top-0 z-10 px-6 py-4"
-        style={{
-          backgroundColor: 'rgba(255,255,255,0.92)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid #E2E8F0',
-          boxShadow: '0 1px 8px rgba(0,0,0,0.04)',
-        }}
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          {/* Logo + title */}
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/90 px-6 py-3 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-lg"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #3b82f6)' }}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-4 w-4 text-white"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" stroke="currentColor" strokeWidth={2}>
                 <rect x="3" y="3" width="18" height="18" rx="2" />
                 <path d="M3 9h18M9 21V9" />
               </svg>
             </div>
             <div>
-              <p
-                className="text-xs font-medium uppercase tracking-widest"
-                style={{ color: '#94A3B8' }}
-              >
-                AdFrame
-              </p>
-              <h1 className="text-sm font-bold" style={{ color: '#0F172A' }}>
-                Painel Administrativo
-              </h1>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">AdFrame</p>
+              <h1 className="text-sm font-bold text-gray-900">Painel Administrativo</h1>
             </div>
           </div>
-
-          {/* Right side */}
           <div className="flex items-center gap-4">
             <RefreshButton />
-            <p
-              className="hidden text-xs sm:block"
-              style={{ color: '#64748B' }}
-            >
+            <span className="hidden rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500 sm:block">
               {user.email}
-            </p>
+            </span>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">
+      <div className="mx-auto max-w-6xl space-y-10 px-6 py-10">
 
-        {/* ── Downloads ───────────────────────────────────────────────────── */}
+        {/* ── Usuários ──────────────────────────────────────────────────────── */}
         <section>
-          <div className="mb-3 flex items-baseline gap-3">
-            <h2
-              className="text-xs font-semibold uppercase tracking-widest"
-              style={{ color: '#64748B' }}
-            >
-              Downloads
-            </h2>
-            <span
-              className="rounded-full px-2 py-0.5 text-xs font-medium"
-              style={{ backgroundColor: '#EFF6FF', color: '#1D4ED8' }}
-            >
+          <SectionTitle>Usuários</SectionTitle>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <MetricCard title="Total cadastrados" total={users.totalAuthUsers} last30d={users.signups.last30d} last7d={users.signups.last7d} accent />
+            <MetricCard title="Logins" total={users.logins.total} last30d={users.logins.last30d} last7d={users.logins.last7d} />
+            <StatCard title="Ativos 7 dias" value={users.activeUsers7d} sub="usuários únicos com evento" />
+            <StatCard title="Ativos 30 dias" value={users.activeUsers30d} sub="usuários únicos com evento" />
+          </div>
+        </section>
+
+        {/* ── Downloads ─────────────────────────────────────────────────────── */}
+        <section>
+          <SectionTitle>
+            Downloads
+            <span className="ml-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
               {fmt(totalDownloads)} total
             </span>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            <MetricCard
-              title="Imagem"
-              total={downloads.image.total}
-              last30d={downloads.image.last30d}
-              last7d={downloads.image.last7d}
-            />
-            <MetricCard
-              title="Batch (.zip)"
-              total={downloads.batch.total}
-              last30d={downloads.batch.last30d}
-              last7d={downloads.batch.last7d}
-            />
-            <MetricCard
-              title="Todas plataformas"
-              total={downloads.allPlatforms.total}
-              last30d={downloads.allPlatforms.last30d}
-              last7d={downloads.allPlatforms.last7d}
-            />
-            <MetricCard
-              title="Vídeo"
-              total={downloads.video.total}
-              last30d={downloads.video.last30d}
-              last7d={downloads.video.last7d}
-            />
-            <MetricCard
-              title="Carrossel"
-              total={downloads.carousel.total}
-              last30d={downloads.carousel.last30d}
-              last7d={downloads.carousel.last7d}
-            />
+          </SectionTitle>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            <MetricCard title="Imagem" total={downloads.image.total} last30d={downloads.image.last30d} last7d={downloads.image.last7d} />
+            <MetricCard title="Batch (.zip)" total={downloads.batch.total} last30d={downloads.batch.last30d} last7d={downloads.batch.last7d} />
+            <MetricCard title="Todas plataformas" total={downloads.allPlatforms.total} last30d={downloads.allPlatforms.last30d} last7d={downloads.allPlatforms.last7d} />
+            <MetricCard title="Vídeo" total={downloads.video.total} last30d={downloads.video.last30d} last7d={downloads.video.last7d} />
+            <MetricCard title="Carrossel" total={downloads.carousel.total} last30d={downloads.carousel.last30d} last7d={downloads.carousel.last7d} />
           </div>
         </section>
 
-        {/* ── Usuários ────────────────────────────────────────────────────── */}
+        {/* ── Atividade + Top Plataformas + Top Formatos ────────────────────── */}
         <section>
-          <h2
-            className="mb-3 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: '#64748B' }}
-          >
-            Usuários
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <MetricCard
-              title="Cadastros"
-              total={users.totalAuthUsers}
-              last30d={users.signups.last30d}
-              last7d={users.signups.last7d}
-              highlight
-            />
-            <MetricCard
-              title="Logins"
-              total={users.logins.total}
-              last30d={users.logins.last30d}
-              last7d={users.logins.last7d}
-            />
-            <SimpleCard
-              title="Usuários ativos 7d"
-              value={users.activeUsers7d}
-              sub="usuários únicos com evento"
-            />
-            <SimpleCard
-              title="Usuários ativos 30d"
-              value={users.activeUsers30d}
-              sub="usuários únicos com evento"
-            />
-          </div>
-        </section>
+          <SectionTitle>Atividade</SectionTitle>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="rounded-2xl border border-gray-100 bg-white p-6">
+              <p className="text-sm font-semibold text-gray-900">Últimos 30 dias</p>
+              <p className="mb-5 mt-0.5 text-xs text-gray-400">
+                {eventsPerDay.reduce((s, d) => s + d.count, 0)} eventos no período
+              </p>
+              <DailyChart data={eventsPerDay} />
+              <div className="mt-2 flex justify-between text-[10px] text-gray-300">
+                <span>{eventsPerDay[0]?.date?.slice(5) ?? ''}</span>
+                <span>{eventsPerDay[eventsPerDay.length - 1]?.date?.slice(5) ?? ''}</span>
+              </div>
+            </div>
 
-        {/* ── Atividade + Top Plataformas + Top Formatos ──────────────────── */}
-        <div className="grid gap-4 lg:grid-cols-3">
+            <div className="rounded-2xl border border-gray-100 bg-white p-6">
+              <p className="mb-4 text-sm font-semibold text-gray-900">
+                Top plataformas <span className="font-normal text-gray-400">30d</span>
+              </p>
+              {topPlatforms.length === 0 ? (
+                <p className="text-xs text-gray-300">Sem dados ainda</p>
+              ) : (
+                <div className="space-y-3">
+                  {topPlatforms.map(([platform, count]) => {
+                    const max = topPlatforms[0]?.[1] ?? 1
+                    return (
+                      <div key={platform}>
+                        <div className="flex justify-between text-xs">
+                          <span className="font-medium text-gray-800">{PLATFORM_LABELS[platform] ?? platform}</span>
+                          <span className="tabular-nums text-gray-500">{fmt(count)}</span>
+                        </div>
+                        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                          <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${(count / max) * 100}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
 
-          {/* Chart */}
-          <div
-            className="rounded-xl p-5"
-            style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0' }}
-          >
-            <h2 className="mb-0.5 text-sm font-semibold" style={{ color: '#0F172A' }}>
-              Atividade — últimos 30 dias
-            </h2>
-            <p className="mb-5 text-xs" style={{ color: '#94A3B8' }}>
-              {eventsPerDay.reduce((s, d) => s + d.count, 0)} eventos no período
-            </p>
-            <DailyChart data={eventsPerDay} />
-            <div className="mt-2 flex justify-between text-xs" style={{ color: '#CBD5E1' }}>
-              <span>{eventsPerDay[0]?.date?.slice(5) ?? ''}</span>
-              <span>{eventsPerDay[eventsPerDay.length - 1]?.date?.slice(5) ?? ''}</span>
+            <div className="rounded-2xl border border-gray-100 bg-white p-6">
+              <p className="mb-4 text-sm font-semibold text-gray-900">
+                Top formatos <span className="font-normal text-gray-400">30d</span>
+              </p>
+              {topFormats.length === 0 ? (
+                <p className="text-xs text-gray-300">Sem dados ainda</p>
+              ) : (
+                <div className="space-y-3">
+                  {topFormats.map(([id, { label, count }]) => {
+                    const max = topFormats[0]?.[1]?.count ?? 1
+                    return (
+                      <div key={id}>
+                        <div className="flex justify-between text-xs">
+                          <span className="font-medium text-gray-800">{label}</span>
+                          <span className="tabular-nums text-gray-500">{fmt(count)}</span>
+                        </div>
+                        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                          <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${(count / max) * 100}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
+        </section>
 
-          {/* Top Plataformas */}
-          <div
-            className="rounded-xl p-5"
-            style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0' }}
-          >
-            <h2 className="mb-4 text-sm font-semibold" style={{ color: '#0F172A' }}>
-              Top plataformas <span className="font-normal" style={{ color: '#94A3B8' }}>30d</span>
-            </h2>
-            {topPlatforms.length === 0 ? (
-              <p className="text-xs" style={{ color: '#CBD5E1' }}>Sem dados ainda</p>
-            ) : (
-              <div className="space-y-3">
-                {topPlatforms.map(([platform, count]) => {
-                  const max = topPlatforms[0]?.[1] ?? 1
-                  return (
-                    <div key={platform}>
-                      <div className="flex justify-between text-xs">
-                        <span className="font-medium" style={{ color: '#0F172A' }}>
-                          {PLATFORM_LABELS[platform] ?? platform}
-                        </span>
-                        <span className="tabular-nums" style={{ color: '#64748B' }}>
-                          {fmt(count)}
-                        </span>
-                      </div>
-                      <div
-                        className="mt-1 h-1 w-full overflow-hidden rounded-full"
-                        style={{ backgroundColor: '#F1F5F9' }}
-                      >
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${(count / max) * 100}%`,
-                            background: 'linear-gradient(90deg, #2563EB, #3b82f6)',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Top Formatos */}
-          <div
-            className="rounded-xl p-5"
-            style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0' }}
-          >
-            <h2 className="mb-4 text-sm font-semibold" style={{ color: '#0F172A' }}>
-              Top formatos <span className="font-normal" style={{ color: '#94A3B8' }}>30d</span>
-            </h2>
-            {topFormats.length === 0 ? (
-              <p className="text-xs" style={{ color: '#CBD5E1' }}>Sem dados ainda</p>
-            ) : (
-              <div className="space-y-3">
-                {topFormats.map(([id, { label, count }]) => {
-                  const max = topFormats[0]?.[1]?.count ?? 1
-                  return (
-                    <div key={id}>
-                      <div className="flex justify-between text-xs">
-                        <span className="font-medium" style={{ color: '#0F172A' }}>{label}</span>
-                        <span className="tabular-nums" style={{ color: '#64748B' }}>
-                          {fmt(count)}
-                        </span>
-                      </div>
-                      <div
-                        className="mt-1 h-1 w-full overflow-hidden rounded-full"
-                        style={{ backgroundColor: '#F1F5F9' }}
-                      >
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${(count / max) * 100}%`,
-                            background: 'linear-gradient(90deg, #2563EB, #3b82f6)',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── Eventos recentes ─────────────────────────────────────────────── */}
+        {/* ── Eventos recentes ──────────────────────────────────────────────── */}
         <section>
-          <h2
-            className="mb-3 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: '#64748B' }}
-          >
-            Eventos recentes
-          </h2>
-          <div
-            className="overflow-hidden rounded-xl"
-            style={{ border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF' }}
-          >
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: '#F8FAFC' }}>
-                  <th className="px-4 py-3 font-semibold" style={{ color: '#475569' }}>Evento</th>
-                  <th className="px-4 py-3 font-semibold" style={{ color: '#475569' }}>Usuário</th>
-                  <th className="px-4 py-3 font-semibold" style={{ color: '#475569' }}>Detalhes</th>
-                  <th className="px-4 py-3 text-right font-semibold" style={{ color: '#475569' }}>Quando</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentEvents.length === 0 ? (
+          <SectionTitle>Eventos recentes</SectionTitle>
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
+            {recentEvents.length === 0 ? (
+              <p className="px-6 py-12 text-center text-sm text-gray-300">
+                Nenhum evento registrado ainda. Use o produto para ver dados aqui.
+              </p>
+            ) : (
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-gray-100 bg-gray-50">
                   <tr>
-                    <td
-                      colSpan={4}
-                      className="px-4 py-8 text-center text-xs"
-                      style={{ color: '#CBD5E1' }}
-                    >
-                      Nenhum evento registrado ainda. Use o produto para ver dados aqui.
-                    </td>
+                    <th className="px-5 py-3 text-xs font-semibold text-gray-500">Evento</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-gray-500">Usuário</th>
+                    <th className="hidden px-5 py-3 text-xs font-semibold text-gray-500 md:table-cell">Detalhes</th>
+                    <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500">Quando</th>
                   </tr>
-                ) : (
-                  recentEvents.map((event, i) => {
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {recentEvents.slice(0, 20).map((event, i) => {
                     const props = event.properties
                     const details = [
                       props?.platform && (PLATFORM_LABELS[props.platform as string] ?? props.platform),
@@ -775,93 +629,52 @@ export default async function AdminPage() {
                       props?.format_count != null && `${props.format_count} formatos`,
                       props?.card_count != null && `${props.card_count} cards`,
                       props?.ai === true && 'IA',
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')
-
+                    ].filter(Boolean).join(' · ')
                     return (
-                      <tr
-                        key={i}
-                        className="transition-colors hover:bg-slate-50"
-                        style={{ borderTop: '1px solid #F1F5F9' }}
-                      >
-                        <td className="px-4 py-2.5">
-                          <span className="font-medium" style={{ color: '#0F172A' }}>
-                            {EVENT_LABELS[event.event_name] ?? event.event_name}
-                          </span>
+                      <tr key={i} className="hover:bg-gray-50">
+                        <td className="px-5 py-3">
+                          <EventBadge name={event.event_name} />
                         </td>
-                        <td className="px-4 py-2.5 font-mono" style={{ color: '#94A3B8' }}>
+                        <td className="px-5 py-3 font-mono text-xs text-gray-400">
                           {event.user_id ? event.user_id.slice(0, 8) + '…' : '—'}
                         </td>
-                        <td className="px-4 py-2.5" style={{ color: '#64748B' }}>
+                        <td className="hidden px-5 py-3 text-xs text-gray-500 md:table-cell">
                           {details || '—'}
                         </td>
-                        <td className="px-4 py-2.5 text-right" style={{ color: '#94A3B8' }}>
+                        <td className="px-5 py-3 text-right text-xs text-gray-400">
                           {relativeTime(event.created_at)}
                         </td>
                       </tr>
                     )
-                  })
-                )}
-              </tbody>
-            </table>
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
         </section>
 
-        {/* ── Organizações ─────────────────────────────────────────────────── */}
+        {/* ── Organizações ──────────────────────────────────────────────────── */}
         <section>
-          <h2
-            className="mb-3 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: '#64748B' }}
-          >
-            Organizações
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <SimpleCard
-              title="Total de orgs"
-              value={orgMetrics.total}
-            />
-            <SimpleCard
-              title="Novas (30d)"
-              value={orgMetrics.new30d}
-              sub={`${orgMetrics.new7d} nos últimos 7 dias`}
-            />
-            <SimpleCard
-              title="Membros totais"
-              value={orgMetrics.totalMembers}
-              sub="com convite aceito"
-            />
-            <SimpleCard
-              title="Aprovações pendentes"
-              value={subsMetrics.pendingApprovals}
-              sub="aguardando revisão"
-            />
+          <SectionTitle>Organizações</SectionTitle>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard title="Total de orgs" value={orgMetrics.total} />
+            <StatCard title="Novas (30d)" value={orgMetrics.new30d} sub={`${orgMetrics.new7d} nos últimos 7d`} />
+            <StatCard title="Membros ativos" value={orgMetrics.totalMembers} sub="com convite aceito" />
+            <StatCard title="Aprovações pendentes" value={subsMetrics.pendingApprovals} sub="aguardando revisão" color="gray" />
           </div>
 
           {orgMetrics.topOrgs.length > 0 && (
-            <div
-              className="mt-4 overflow-hidden rounded-xl"
-              style={{ border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF' }}
-            >
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: '#F8FAFC' }}>
-                    <th className="px-4 py-3 font-semibold" style={{ color: '#475569' }}>Organização</th>
-                    <th className="px-4 py-3 text-right font-semibold" style={{ color: '#475569' }}>Membros</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+              <div className="border-b border-gray-100 px-5 py-3">
+                <p className="text-xs font-semibold text-gray-500">Top organizações por membros</p>
+              </div>
+              <table className="w-full text-left text-sm">
+                <tbody className="divide-y divide-gray-50">
                   {orgMetrics.topOrgs.map((org) => (
-                    <tr
-                      key={org.id}
-                      className="transition-colors hover:bg-slate-50"
-                      style={{ borderTop: '1px solid #F1F5F9' }}
-                    >
-                      <td className="px-4 py-2.5 font-medium" style={{ color: '#0F172A' }}>
-                        {org.name}
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: '#64748B' }}>
-                        {fmt(org.memberCount)}
+                    <tr key={org.id} className="hover:bg-gray-50">
+                      <td className="px-5 py-3 font-medium text-gray-900">{org.name}</td>
+                      <td className="px-5 py-3 text-right text-sm tabular-nums text-gray-500">
+                        {fmt(org.memberCount)} membro{org.memberCount !== 1 ? 's' : ''}
                       </td>
                     </tr>
                   ))}
@@ -871,61 +684,26 @@ export default async function AdminPage() {
           )}
         </section>
 
-        {/* ── Gestão de Planos ─────────────────────────────────────────────── */}
+        {/* ── Planos & Receita ──────────────────────────────────────────────── */}
         <section>
-          <h2
-            className="mb-3 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: '#64748B' }}
-          >
-            Gestão de planos
-          </h2>
-          <PlanManager users={planData.users} orgs={planData.orgs} />
+          <SectionTitle>Planos &amp; Receita</SectionTitle>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard title="Free" value={Math.max(0, users.totalAuthUsers - subsMetrics.proActive)} sub="sem plano pago" color="gray" />
+            <StatCard title="Pro" value={subsMetrics.proActive} sub="assinaturas ativas" />
+            <StatCard title="Team" value={subsMetrics.teamActive} sub={`${fmt(subsMetrics.totalTeamSeats)} seats totais`} />
+            <StatCard
+              title="MRR estimado"
+              value={(subsMetrics.mrrCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              sub="Pro × R$29,90 + Team × R$49,90"
+              color="green"
+            />
+          </div>
         </section>
 
-        {/* ── Planos & Receita ─────────────────────────────────────────────── */}
+        {/* ── Gestão de Planos ──────────────────────────────────────────────── */}
         <section>
-          <h2
-            className="mb-3 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: '#64748B' }}
-          >
-            Planos &amp; Receita
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div
-              className="rounded-xl p-4"
-              style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0' }}
-            >
-              <p className="text-xs font-medium uppercase tracking-widest" style={{ color: '#64748B' }}>
-                Free
-              </p>
-              <p className="mt-1 text-3xl font-bold tabular-nums" style={{ color: '#0F172A' }}>
-                {fmt(Math.max(0, users.totalAuthUsers - subsMetrics.proActive))}
-              </p>
-              <p className="mt-1 text-xs" style={{ color: '#94A3B8' }}>usuários sem plano pago</p>
-            </div>
-            <SimpleCard
-              title="Pro (individual)"
-              value={subsMetrics.proActive}
-              sub="assinaturas ativas / em trial"
-            />
-            <SimpleCard
-              title="Team (org)"
-              value={subsMetrics.teamActive}
-              sub={`${fmt(subsMetrics.totalTeamSeats)} seats totais`}
-            />
-            <div
-              className="rounded-xl p-4"
-              style={{ backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0' }}
-            >
-              <p className="text-xs font-medium uppercase tracking-widest" style={{ color: '#064E3B' }}>
-                MRR estimado
-              </p>
-              <p className="mt-1 text-3xl font-bold tabular-nums" style={{ color: '#065F46' }}>
-                {(subsMetrics.mrrCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </p>
-              <p className="mt-1 text-xs" style={{ color: '#6EE7B7' }}>Pro × R$29,90 + Team seats × R$49,90</p>
-            </div>
-          </div>
+          <SectionTitle>Gestão de planos</SectionTitle>
+          <PlanManager users={planData.users} orgs={planData.orgs} />
         </section>
 
       </div>
