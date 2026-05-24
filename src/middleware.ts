@@ -54,6 +54,11 @@ export async function middleware(request: NextRequest) {
 
     // ── Admin subdomain: rewrite to /admin route ───────────────────────────
     if (isAdminSubdomain) {
+      // Pass through Next.js internal assets and API routes without rewriting
+      if (pathname.startsWith('/_next/') || pathname.startsWith('/api/') || pathname === '/favicon.ico') {
+        return supabaseResponse
+      }
+
       if (!user) {
         return NextResponse.redirect(`${MAIN_ORIGIN}/login`)
       }
