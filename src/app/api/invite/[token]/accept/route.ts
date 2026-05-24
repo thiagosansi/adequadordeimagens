@@ -60,6 +60,7 @@ export async function POST(
       user_id: user.id,
       role: invitation.role,
       invited_by: null,
+      joined_at: new Date().toISOString(),
     })
 
     // Mark invitation accepted
