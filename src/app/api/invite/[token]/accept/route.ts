@@ -55,13 +55,16 @@ export async function POST(
     }
 
     // Add to org
-    await db.from('organization_members').insert({
+    const { error: memberError } = await db.from('organization_members').insert({
       organization_id: invitation.organization_id,
       user_id: user.id,
       role: invitation.role,
-      invited_by: null,
       joined_at: new Date().toISOString(),
     })
+    if (memberError) {
+      console.error('[invite/accept] member insert failed:', memberError)
+      return NextResponse.json({ error: 'Failed to add member to organization.' }, { status: 500 })
+    }
 
     // Mark invitation accepted
     await db
