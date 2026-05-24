@@ -6,7 +6,8 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/app'
 
-  const response = NextResponse.redirect(`${origin}${next}`)
+  let redirectPath = next
+  const pendingCookies: Array<{ name: string; value: string; options: object }> = []
 
   if (code) {
     const supabase = createServerClient(
@@ -19,14 +20,27 @@ export async function GET(request: NextRequest) {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
+              pendingCookies.push({ name, value, options }),
             )
           },
         },
       },
     )
-    await supabase.auth.exchangeCodeForSession(code)
+
+    const { data } = await supabase.auth.exchangeCodeForSession(code)
+
+    // New OAuth user (Google etc.): created_at ≈ last_sign_in_at → send to onboarding
+    if (data.session?.user && next === '/app') {
+      const user = data.session.user
+      const created = new Date(user.created_at).getTime()
+      const lastSign = new Date(user.last_sign_in_at ?? user.created_at).getTime()
+      if (Math.abs(created - lastSign) < 10_000) {
+        redirectPath = '/app/onboarding'
+      }
+    }
   }
 
+  const response = NextResponse.redirect(`${origin}${redirectPath}`)
+  pendingCookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
   return response
 }
