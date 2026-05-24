@@ -35,11 +35,20 @@ export async function GET() {
     (usageRows ?? []).map((r) => [r.action, r.count as number]),
   )
 
+  // null/undefined features_monthly means unlimited (paid plan with no cap)
+  // Only fall back to free-tier defaults when there is no subscription at all
+  const exportsLimit = subscription
+    ? ((plan?.features?.exports_monthly as number | null) ?? 0)
+    : 15
+  const aiLimit = subscription
+    ? ((plan?.features?.ai_requests_monthly as number | null) ?? 0)
+    : 3
+
   return NextResponse.json({
     planId,
     exportsUsed: usageMap['export'] ?? 0,
-    exportsLimit: (plan?.features?.exports_monthly ?? 15) as number,
+    exportsLimit,
     aiUsed: usageMap['ai_request'] ?? 0,
-    aiLimit: (plan?.features?.ai_requests_monthly ?? 3) as number,
+    aiLimit,
   })
 }
