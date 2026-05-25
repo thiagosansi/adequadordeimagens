@@ -213,6 +213,74 @@ function BatchVisual({ active }: { active: boolean }) {
   )
 }
 
+function SmartSaliencyVisual({ active }: { active: boolean }) {
+  return (
+    <div className="relative h-full flex items-center justify-center">
+      <div className="relative w-28 h-20 rounded-lg overflow-hidden"
+        style={{ border: '1px solid #E2E8F0' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="https://picsum.photos/seed/saliency/112/80" alt="" className="w-full h-full object-cover" />
+        {active && (
+          <motion.div
+            className="absolute inset-0"
+            style={{ background: 'radial-gradient(ellipse 40% 35% at 55% 35%, rgba(220,38,38,0.5) 0%, rgba(234,88,12,0.25) 45%, transparent 70%)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          />
+        )}
+      </div>
+      <div className="absolute -right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5">
+        {['#ef4444','#f97316','#eab308','#86efac','#60a5fa'].map((c, i) => (
+          <div key={i} className="w-2 h-2 rounded-sm" style={{ backgroundColor: c }} />
+        ))}
+      </div>
+      <div className="absolute bottom-1 left-0 right-0 text-center text-[8px]" style={{ color: '#94A3B8' }}>
+        Mapa de atenção
+      </div>
+    </div>
+  )
+}
+
+function WorkspacesVisual({ active }: { active: boolean }) {
+  return (
+    <div className="relative h-full flex flex-col justify-center gap-2 px-3">
+      {[
+        { name: 'Ana Lima',   role: 'Admin',       color: '#2563EB' },
+        { name: 'Bruno Melo', role: 'Media Buyer', color: '#0891B2' },
+        { name: 'Carol Dias', role: 'Designer',    color: '#D97706' },
+      ].map((m, i) => (
+        <motion.div
+          key={m.name}
+          className="flex items-center gap-2"
+          initial={{ opacity: 0, x: -6 }}
+          animate={active ? { opacity: 1, x: 0 } : { opacity: 0.5, x: 0 }}
+          transition={{ delay: i * 0.07, duration: 0.35 }}
+        >
+          <div className="w-5 h-5 rounded-full flex items-center justify-center text-[7px] font-bold text-white shrink-0"
+            style={{ backgroundColor: m.color }}>
+            {m.name[0]}
+          </div>
+          <span className="text-[9px] font-medium flex-1" style={{ color: '#0F172A' }}>{m.name}</span>
+          <span className="text-[8px] rounded-full px-1.5 py-px font-medium"
+            style={{ background: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE' }}>
+            {m.role}
+          </span>
+        </motion.div>
+      ))}
+      <motion.div
+        className="mt-1 rounded-lg px-2 py-1 text-[8px]"
+        style={{ background: '#F5F3FF', border: '1px solid #DDD6FE', color: '#7C3AED' }}
+        initial={{ opacity: 0 }}
+        animate={active ? { opacity: 1 } : { opacity: 0.4 }}
+        transition={{ delay: 0.25 }}
+      >
+        ✦ Aprovação em 1 clique antes do export
+      </motion.div>
+    </div>
+  )
+}
+
 function PerformancePredictionVisual({ active }: { active: boolean }) {
   const bars = [
     { label: 'Feed 1:1', ctr: 4.2, color: '#16A34A' },
@@ -437,6 +505,33 @@ const FEATURES = [
     title: 'Safe Zones',
     description: 'Evite perdas críticas mapeando as áreas bloqueadas por cada plataforma.',
     Visual: SafeZoneMiniVisual,
+  },
+  {
+    id: 'smart-saliency',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-4 w-4">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      </svg>
+    ),
+    color: '#2563EB',
+    iconBg: '#EFF6FF',
+    title: 'Smart Saliency',
+    description: 'Mapeamento visual de atenção para sugerir o melhor enquadramento. O sistema indica onde o olhar humano foca antes mesmo do crop.',
+    Visual: SmartSaliencyVisual,
+  },
+  {
+    id: 'workspaces',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-4 w-4">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+      </svg>
+    ),
+    color: '#7C3AED',
+    iconBg: '#F5F3FF',
+    title: 'Workspaces para Equipes',
+    description: 'Gerencie múltiplos projetos e clientes com controle de acesso por role. Fluxos de aprovação, brand kits e workspaces isolados por conta.',
+    Visual: WorkspacesVisual,
   },
   {
     id: 'performance-prediction',

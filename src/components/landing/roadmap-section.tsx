@@ -6,50 +6,12 @@ const EASE = [0.16, 1, 0.3, 1] as const
 
 const ITEMS = [
   {
-    id: 'saliency',
-    status: 'Em desenvolvimento',
-    statusColor: '#2563EB',
-    statusBg: '#EFF6FF',
-    statusBorder: '#BFDBFE',
-    quarter: 'Q3 2025',
-    title: 'Smart Saliency',
-    description:
-      'Mapeamento visual de atenção para sugerir o melhor enquadramento. O sistema indica onde o olhar humano foca antes mesmo do crop.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-      </svg>
-    ),
-    iconBg: '#EFF6FF',
-    visual: (
-      <div className="relative h-full flex items-center justify-center">
-        <div className="relative w-28 h-20 rounded-lg overflow-hidden"
-          style={{ border: '1px solid #E2E8F0' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="https://picsum.photos/seed/saliency/112/80" alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{
-            background: 'radial-gradient(ellipse 40% 35% at 55% 35%, rgba(220,38,38,0.5) 0%, rgba(234,88,12,0.25) 45%, transparent 70%)',
-          }} />
-        </div>
-        <div className="absolute -right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5">
-          {['#ef4444','#f97316','#eab308','#86efac','#60a5fa'].map((c, i) => (
-            <div key={i} className="w-2 h-2 rounded-sm" style={{ backgroundColor: c }} />
-          ))}
-        </div>
-        <div className="absolute bottom-1 left-0 right-0 text-center text-[8px]" style={{ color: '#94A3B8' }}>
-          Mapa de atenção
-        </div>
-      </div>
-    ),
-  },
-  {
     id: 'variants',
     status: 'Planejado',
     statusColor: '#D97706',
     statusBg: '#FFFBEB',
     statusBorder: '#FDE68A',
-    quarter: 'Q1 2026',
+    quarter: 'Q3 2026',
     title: 'A/B Variants',
     description:
       'Geração de 3 imagens distintas por IA a partir de 1 upload — mesmos elementos visuais, composições diferentes — prontas para testes A/B reais.',
@@ -61,7 +23,6 @@ const ITEMS = [
     iconBg: '#FFFBEB',
     visual: (
       <div className="h-full flex flex-col justify-between py-2 px-3">
-        {/* A/B/C thumbnails */}
         <div className="flex items-end justify-center gap-2">
           {(['A', 'B', 'C'] as const).map((v, i) => (
             <div key={v} className="flex flex-col items-center gap-1">
@@ -81,8 +42,6 @@ const ITEMS = [
             </div>
           ))}
         </div>
-
-        {/* Tech comparison */}
         <div className="flex items-center gap-1.5">
           <span className="text-[8px] font-medium shrink-0" style={{ color: '#94A3B8' }}>Via IA:</span>
           <div className="flex gap-1 flex-wrap">
@@ -102,48 +61,56 @@ const ITEMS = [
     ),
   },
   {
-    id: 'teams',
+    id: 'figma-plugin',
     status: 'Em breve',
     statusColor: '#7C3AED',
     statusBg: '#F5F3FF',
     statusBorder: '#DDD6FE',
-    quarter: 'Q2 2026',
-    title: 'Workspaces para Equipes',
+    quarter: 'Q4 2026',
+    title: 'Plugin Figma',
     description:
-      'Gerencie múltiplos projetos e clientes com controle de acesso por role. Fluxos de aprovação, brand kits centralizados e workspaces isolados por conta.',
+      'Exporte frames do Figma direto para o AdFrame com um clique. Aplique Brand Kit, gere variantes e publique assets sem sair do seu fluxo de design.',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-6 w-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 9.75 16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
       </svg>
     ),
     iconBg: '#F5F3FF',
     visual: (
       <div className="relative h-full flex flex-col justify-center gap-2 px-3">
-        {[
-          { name: 'Ana Lima',   role: 'Admin',       color: '#2563EB', online: true  },
-          { name: 'Bruno Melo', role: 'Media Buyer', color: '#0891B2', online: true  },
-          { name: 'Carol Dias', role: 'Designer',    color: '#D97706', online: false },
-        ].map((m) => (
-          <div key={m.name} className="flex items-center gap-2">
-            <div className="relative flex-shrink-0">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[7px] font-bold text-white"
-                style={{ backgroundColor: m.color }}>
-                {m.name[0]}
-              </div>
-              {m.online && (
-                <div className="absolute -bottom-px -right-px w-1.5 h-1.5 rounded-full bg-green-400 border border-white" />
-              )}
-            </div>
-            <span className="text-[9px] font-medium flex-1" style={{ color: '#0F172A' }}>{m.name}</span>
-            <span className="text-[8px] rounded-full px-1.5 py-px font-medium"
-              style={{ background: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE' }}>
-              {m.role}
-            </span>
+        <div className="flex items-center gap-2 rounded-lg px-2 py-1.5"
+          style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+          <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+            style={{ background: '#1E1E1E' }}>
+            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none">
+              <path d="M8 8a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z" fill="#F24E1E"/>
+              <path d="M8 12a4 4 0 0 0 0 8h4v-8H8Z" fill="#0ACF83"/>
+              <path d="M12 12h4a4 4 0 0 1 0 8v0a4 4 0 0 1-4-4v-4Z" fill="#A259FF"/>
+              <path d="M12 4H8a4 4 0 0 0 0 8h4V4Z" fill="#F24E1E"/>
+              <path d="M16 4h-4v8h4a4 4 0 0 0 0-8Z" fill="#FF7262"/>
+            </svg>
           </div>
-        ))}
-        <div className="mt-1 rounded-lg px-2 py-1 text-[8px]"
-          style={{ background: '#F5F3FF', border: '1px solid #DDD6FE', color: '#7C3AED' }}>
-          ✦ Aprovação em 1 clique antes do export
+          <span className="text-[9px] font-medium" style={{ color: '#0F172A' }}>hero-banner.fig</span>
+          <div className="ml-auto text-[8px] font-semibold px-1.5 py-px rounded"
+            style={{ background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE' }}>
+            Exportar →
+          </div>
+        </div>
+        <div className="flex items-center justify-center gap-1" style={{ color: '#94A3B8' }}>
+          <svg viewBox="0 0 16 16" className="h-3 w-3" fill="currentColor">
+            <path d="M8 1v14M1 8l7 7 7-7" stroke="currentColor" strokeWidth={1.5} fill="none"/>
+          </svg>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg px-2 py-1.5"
+          style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+          <div className="w-5 h-5 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: '#2563EB' }}>
+            <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3 text-white" stroke="currentColor" strokeWidth={2}>
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18M9 21V9" />
+            </svg>
+          </div>
+          <span className="text-[9px] font-medium" style={{ color: '#1D4ED8' }}>AdFrame — pronto para adaptar</span>
         </div>
       </div>
     ),
@@ -194,7 +161,7 @@ export function RoadmapSection() {
           />
 
           {/* Cards */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:max-w-3xl lg:mx-auto">
             {ITEMS.map((item, i) => (
               <motion.div
                 key={item.id}
@@ -251,7 +218,7 @@ export function RoadmapSection() {
           className="mt-12 text-center"
         >
           <p className="text-sm" style={{ color: '#94A3B8' }}>
-            Roadmap atualizado em maio de 2025 ·{' '}
+            Roadmap atualizado em maio de 2026 ·{' '}
             <span className="cursor-pointer transition-colors hover:text-blue-600" style={{ color: '#2563EB' }}>
               Sugira uma feature →
             </span>
