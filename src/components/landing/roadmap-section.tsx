@@ -61,6 +61,55 @@ const ITEMS = [
     ),
   },
   {
+    id: 'photoshop-plugin',
+    status: 'Em breve',
+    statusColor: '#D97706',
+    statusBg: '#FFFBEB',
+    statusBorder: '#FDE68A',
+    quarter: 'Q1 2027',
+    title: 'Plugin Photoshop',
+    description:
+      'Exporte layers e documentos do Photoshop direto para o AdFrame via Adobe UXP. Adapte criativos para todas as plataformas sem sair do seu fluxo de produção.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-6 w-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42" />
+      </svg>
+    ),
+    iconBg: '#FFFBEB',
+    visual: (
+      <div className="relative h-full flex flex-col justify-center gap-2 px-3">
+        <div className="flex items-center gap-2 rounded-lg px-2 py-1.5"
+          style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+          <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+            style={{ background: '#001E36' }}>
+            <span className="text-[7px] font-black" style={{ color: '#31A8FF' }}>Ps</span>
+          </div>
+          <span className="text-[9px] font-medium" style={{ color: '#0F172A' }}>campanha-verao.psd</span>
+          <div className="ml-auto text-[8px] font-semibold px-1.5 py-px rounded"
+            style={{ background: '#FFFBEB', color: '#D97706', border: '1px solid #FDE68A' }}>
+            Exportar →
+          </div>
+        </div>
+        <div className="flex items-center justify-center gap-1" style={{ color: '#94A3B8' }}>
+          <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 2v12M3 9l5 5 5-5" />
+          </svg>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg px-2 py-1.5"
+          style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+          <div className="w-5 h-5 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: '#2563EB' }}>
+            <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3 text-white" stroke="currentColor" strokeWidth={2}>
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18M9 21V9" />
+            </svg>
+          </div>
+          <span className="text-[9px] font-medium" style={{ color: '#1D4ED8' }}>AdFrame — pronto para adaptar</span>
+        </div>
+      </div>
+    ),
+  },
+  {
     id: 'figma-plugin',
     status: 'Em breve',
     statusColor: '#7C3AED',
@@ -161,7 +210,7 @@ export function RoadmapSection() {
           />
 
           {/* Cards */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:max-w-3xl lg:mx-auto">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {ITEMS.map((item, i) => (
               <motion.div
                 key={item.id}
